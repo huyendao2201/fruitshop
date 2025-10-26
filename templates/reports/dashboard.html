@@ -1,0 +1,622 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Admin Dashboard - Fresh Fruit Shop{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2><i class="bi bi-speedometer2"></i> Admin Dashboard</h2>
+        <p class="text-muted">Welcome back, {{ user.get_full_name|default:user.username }}!</p>
+        <hr>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card dashboard-card bg-primary text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="mb-0">{{ total_orders }}</h4>
+                        <p class="mb-0">Total Orders</p>
+                    </div>
+                    <i class="bi bi-bag-check stat-icon"></i>
+                </div>
+                <small class="mt-2 d-block">
+                    <i class="bi bi-calendar-month"></i> {{ monthly_orders }} this month
+                </small>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card dashboard-card bg-success text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="mb-0">${{ total_revenue|floatformat:0 }}</h4>
+                        <p class="mb-0">Total Revenue</p>
+                    </div>
+                    <i class="bi bi-currency-dollar stat-icon"></i>
+                </div>
+                <small class="mt-2 d-block">
+                    <i class="bi bi-calendar-month"></i> ${{ monthly_revenue|floatformat:0 }} this month
+                </small>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card dashboard-card bg-info text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="mb-0">{{ total_customers }}</h4>
+                        <p class="mb-0">Total Customers</p>
+                    </div>
+                    <i class="bi bi-people stat-icon"></i>
+                </div>
+                <small class="mt-2 d-block">
+                    <i class="bi bi-person-plus"></i> Active users
+                </small>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card dashboard-card bg-warning text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="mb-0">{{ total_products }}</h4>
+                        <p class="mb-0">Total Products</p>
+                    </div>
+                    <i class="bi bi-box-seam stat-icon"></i>
+                </div>
+                <small class="mt-2 d-block">
+                    <i class="bi bi-check-circle"></i> Active products
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delivery Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-12">
+        <h5 class="mb-3"><i class="bi bi-truck"></i> Delivery Management</h5>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card dashboard-card border-warning">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="mb-0 text-warning">{{ pending_deliveries }}</h4>
+                        <p class="mb-0 text-muted">Chờ Phân Công</p>
+                    </div>
+                    <i class="bi bi-clock-history text-warning" style="font-size: 2.5rem;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card dashboard-card border-primary">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="mb-0 text-primary">{{ active_deliveries }}</h4>
+                        <p class="mb-0 text-muted">Đang Giao</p>
+                    </div>
+                    <i class="bi bi-truck text-primary" style="font-size: 2.5rem;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card dashboard-card border-success">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="mb-0 text-success">{{ completed_today }}</h4>
+                        <p class="mb-0 text-muted">Hoàn Thành Hôm Nay</p>
+                    </div>
+                    <i class="bi bi-check-circle text-success" style="font-size: 2.5rem;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 mb-3">
+        <div class="card dashboard-card border-danger">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="mb-0 text-danger">{{ delayed_deliveries }}</h4>
+                        <p class="mb-0 text-muted">Trễ Hạn</p>
+                    </div>
+                    <i class="bi bi-exclamation-triangle text-danger" style="font-size: 2.5rem;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Deliveries Need Attention -->
+{% if deliveries_need_attention %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-danger">
+            <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-exclamation-triangle-fill"></i> Deliveries Cần Xử Lý Ngay</h5>
+                <a href="{% url 'admin:delivery_delivery_changelist' %}" class="btn btn-light btn-sm">
+                    Quản Lý Delivery
+                </a>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Đơn Hàng</th>
+                                <th>Khách Hàng</th>
+                                <th>Địa Chỉ Giao</th>
+                                <th>Nhân Viên</th>
+                                <th>Trạng Thái</th>
+                                <th>Dự Kiến Giao</th>
+                                <th>Thao Tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for delivery in deliveries_need_attention %}
+                            <tr class="{% if delivery.status == 'pending' %}table-warning{% elif delivery.status == 'failed' %}table-danger{% elif delivery.is_delayed %}table-danger{% endif %}">
+                                <td>
+                                    <a href="{% url 'admin:orders_order_change' delivery.order.id %}" class="text-decoration-none">
+                                        <strong>#{{ delivery.order.order_number }}</strong>
+                                    </a>
+                                </td>
+                                <td>{{ delivery.order.user.get_full_name|default:delivery.order.user.username }}</td>
+                                <td>
+                                    <small>{{ delivery.delivery_address|truncatewords:8 }}</small>
+                                </td>
+                                <td>
+                                    {% if delivery.delivery_person %}
+                                        <span class="badge bg-info">
+                                            {{ delivery.delivery_person.user.get_full_name }}
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-warning">Chưa phân công</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if delivery.status == 'pending' %}
+                                        <span class="badge bg-warning">{{ delivery.get_status_display }}</span>
+                                    {% elif delivery.status == 'assigned' %}
+                                        <span class="badge bg-info">{{ delivery.get_status_display }}</span>
+                                    {% elif delivery.status == 'picked_up' %}
+                                        <span class="badge bg-primary">{{ delivery.get_status_display }}</span>
+                                    {% elif delivery.status == 'in_transit' %}
+                                        <span class="badge bg-primary">{{ delivery.get_status_display }}</span>
+                                    {% elif delivery.status == 'failed' %}
+                                        <span class="badge bg-danger">{{ delivery.get_status_display }}</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">{{ delivery.get_status_display }}</span>
+                                    {% endif %}
+                                    
+                                    {% if delivery.is_delayed %}
+                                        <span class="badge bg-danger ms-1">
+                                            <i class="bi bi-clock"></i> Trễ
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if delivery.estimated_delivery_time %}
+                                        <small>{{ delivery.estimated_delivery_time|date:"M d, H:i" }}</small>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{% url 'admin:delivery_delivery_change' delivery.id %}" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Recent Deliveries & Top Delivery Persons -->
+<div class="row mb-4">
+    <!-- Recent Deliveries -->
+    <div class="col-lg-8 mb-3">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5><i class="bi bi-truck"></i> Recent Deliveries</h5>
+                <a href="{% url 'admin:delivery_delivery_changelist' %}" class="btn btn-outline-primary btn-sm">
+                    View All
+                </a>
+            </div>
+            <div class="card-body">
+                {% if recent_deliveries %}
+                <div class="table-responsive">
+                    <table class="table table-hover table-sm">
+                        <thead>
+                            <tr>
+                                <th>Đơn Hàng</th>
+                                <th>Khách Hàng</th>
+                                <th>Nhân Viên</th>
+                                <th>Trạng Thái</th>
+                                <th>Ngày Tạo</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for delivery in recent_deliveries %}
+                            <tr>
+                                <td>
+                                    <a href="{% url 'admin:delivery_delivery_change' delivery.id %}" class="text-decoration-none">
+                                        #{{ delivery.order.order_number }}
+                                    </a>
+                                </td>
+                                <td>{{ delivery.order.user.get_full_name|default:delivery.order.user.username }}</td>
+                                <td>
+                                    {% if delivery.delivery_person %}
+                                        {{ delivery.delivery_person.user.get_full_name|truncatechars:20 }}
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if delivery.status == 'pending' %}
+                                        <span class="badge bg-warning">{{ delivery.get_status_display }}</span>
+                                    {% elif delivery.status == 'assigned' %}
+                                        <span class="badge bg-info">{{ delivery.get_status_display }}</span>
+                                    {% elif delivery.status == 'picked_up' %}
+                                        <span class="badge bg-primary">{{ delivery.get_status_display }}</span>
+                                    {% elif delivery.status == 'in_transit' %}
+                                        <span class="badge bg-primary">{{ delivery.get_status_display }}</span>
+                                    {% elif delivery.status == 'delivered' %}
+                                        <span class="badge bg-success">{{ delivery.get_status_display }}</span>
+                                    {% elif delivery.status == 'failed' %}
+                                        <span class="badge bg-danger">{{ delivery.get_status_display }}</span>
+                                    {% elif delivery.status == 'returned' %}
+                                        <span class="badge bg-secondary">{{ delivery.get_status_display }}</span>
+                                    {% endif %}
+                                </td>
+                                <td><small>{{ delivery.created_at|date:"M d, H:i" }}</small></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="bi bi-truck display-4 text-muted"></i>
+                    <p class="text-muted mt-2">Chưa có delivery nào</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Top Delivery Persons -->
+    <div class="col-lg-4 mb-3">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5><i class="bi bi-trophy"></i> Top Shipper</h5>
+                <a href="{% url 'admin:delivery_deliveryperson_changelist' %}" class="btn btn-outline-primary btn-sm">
+                    View All
+                </a>
+            </div>
+            <div class="card-body">
+                {% if top_delivery_persons %}
+                <div class="list-group list-group-flush">
+                    {% for person in top_delivery_persons %}
+                    <div class="list-group-item px-0">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6 class="mb-1">
+                                    <i class="bi bi-person-badge"></i>
+                                    {{ person.user.get_full_name|default:person.user.username }}
+                                </h6>
+                                <small class="text-muted">
+                                    <i class="bi bi-phone"></i> {{ person.phone }}
+                                </small>
+                                <div class="mt-1">
+                                    <span class="badge bg-success">
+                                        {{ person.successful_deliveries }} thành công
+                                    </span>
+                                    <span class="badge bg-secondary">
+                                        {{ person.total_deliveries }} tổng
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                <div class="text-warning">
+                                    <i class="bi bi-star-fill"></i>
+                                    {{ person.rating|floatformat:1 }}
+                                </div>
+                                <small class="text-success">
+                                    {{ person.success_rate|floatformat:0 }}%
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="bi bi-person-x display-4 text-muted"></i>
+                    <p class="text-muted mt-2">Chưa có nhân viên giao hàng</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Recent Orders -->
+    <div class="col-lg-8 mb-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5><i class="bi bi-clock-history"></i> Recent Orders</h5>
+                <a href="{% url 'admin:orders_order_changelist' %}" class="btn btn-outline-primary btn-sm">
+                    View All
+                </a>
+            </div>
+            <div class="card-body">
+                {% if recent_orders %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Order #</th>
+                                <th>Customer</th>
+                                <th>Status</th>
+                                <th>Total</th>
+                                <th>Date</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for order in recent_orders %}
+                            <tr>
+                                <td><strong>#{{ order.id }}</strong></td>
+                                <td>{{ order.user.get_full_name|default:order.user.username }}</td>
+                                <td>
+                                    <span class="order-status status-{{ order.status }}">
+                                        {{ order.get_status_display }}
+                                    </span>
+                                </td>
+                                <td><strong>${{ order.total_amount|floatformat:2 }}</strong></td>
+                                <td>{{ order.created_at|date:"M d, H:i" }}</td>
+                                <td>
+                                    <a href="{% url 'admin:orders_order_change' order.id %}" class="btn btn-outline-primary btn-sm">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="bi bi-inbox display-4 text-muted"></i>
+                    <p class="text-muted mt-2">No orders yet</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Order Status Distribution -->
+    <div class="col-lg-4 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-pie-chart"></i> Order Status</h5>
+            </div>
+            <div class="card-body">
+                {% if order_status_stats %}
+                {% for stat in order_status_stats %}
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <span class="order-status status-{{ stat.status }}">
+                            {{ stat.status|title }}
+                        </span>
+                    </div>
+                    <div>
+                        <strong>{{ stat.count }}</strong>
+                    </div>
+                </div>
+                {% endfor %}
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="bi bi-graph-up display-4 text-muted"></i>
+                    <p class="text-muted mt-2">No data available</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Order Items (Chi tiết sản phẩm đã bán) -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5><i class="bi bi-cart-check"></i> Chi Tiết Sản Phẩm Đã Bán Gần Đây</h5>
+                <a href="{% url 'admin:orders_orderitem_changelist' %}" class="btn btn-outline-primary btn-sm">
+                    Xem Tất Cả
+                </a>
+            </div>
+            <div class="card-body">
+                {% if recent_order_items %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Đơn Hàng #</th>
+                                <th>Sản Phẩm</th>
+                                <th>Khách Hàng</th>
+                                <th>Số Lượng</th>
+                                <th>Giá Gốc</th>
+                                <th>Giá KM</th>
+                                <th>Thành Tiền</th>
+                                <th>Tiết Kiệm</th>
+                                <th>Ngày</th>
+                                <th>Trạng Thái</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in recent_order_items %}
+                            <tr>
+                                <td>
+                                    <a href="{% url 'admin:orders_order_change' item.order.id %}" class="text-decoration-none">
+                                        <strong>#{{ item.order.order_number }}</strong>
+                                    </a>
+                                </td>
+                                <td>
+                                    <a href="{% url 'admin:products_product_change' item.product.id %}" class="text-decoration-none">
+                                        {{ item.product.name }}
+                                    </a>
+                                </td>
+                                <td>{{ item.order.user.get_full_name|default:item.order.user.username }}</td>
+                                <td><span class="badge bg-info">{{ item.quantity }}</span></td>
+                                <td>${{ item.price|floatformat:2 }}</td>
+                                <td>
+                                    {% if item.discount_price %}
+                                        <span class="text-success fw-bold">${{ item.discount_price|floatformat:2 }}</span>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <strong>${{ item.get_total_price|floatformat:2 }}</strong>
+                                </td>
+                                <td>
+                                    {% if item.discount_price %}
+                                        <span class="text-success">
+                                            <i class="bi bi-tag-fill"></i>
+                                            ${{ item.get_saved_amount|floatformat:2 }}
+                                        </span>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ item.order.created_at|date:"M d, H:i" }}</td>
+                                <td>
+                                    <span class="order-status status-{{ item.order.status }}">
+                                        {{ item.order.get_status_display }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="bi bi-inbox display-4 text-muted"></i>
+                    <p class="text-muted mt-2">Chưa có sản phẩm đã bán</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Best Selling Products -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5><i class="bi bi-trophy"></i> Best Selling Products</h5>
+                <a href="{% url 'admin:products_product_changelist' %}" class="btn btn-outline-primary btn-sm">
+                    Manage Products
+                </a>
+            </div>
+            <div class="card-body">
+                {% if best_selling_products %}
+                <div class="row">
+                    {% for product in best_selling_products %}
+                    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+                        <div class="card h-100">
+                            {% if product.image %}
+                                <img src="{{ product.image.url }}" class="card-img-top" style="height: 120px; object-fit: cover;" alt="{{ product.name }}">
+                            {% else %}
+                                <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 120px;">
+                                    <i class="bi bi-image text-muted"></i>
+                                </div>
+                            {% endif %}
+                            <div class="card-body p-2">
+                                <h6 class="card-title small">{{ product.name }}</h6>
+                                <p class="card-text small text-muted">
+                                    <i class="bi bi-bag"></i> {{ product.total_sold|default:0 }} sold
+                                </p>
+                                <p class="card-text small">
+                                    <strong>${{ product.price }}</strong>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="bi bi-box display-4 text-muted"></i>
+                    <p class="text-muted mt-2">No sales data available</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-lightning"></i> Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 mb-2">
+                        <a href="{% url 'admin:products_product_add' %}" class="btn btn-outline-success w-100">
+                            <i class="bi bi-plus-circle"></i> Add Product
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <a href="{% url 'admin:products_category_add' %}" class="btn btn-outline-info w-100">
+                            <i class="bi bi-plus-circle"></i> Add Category
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <a href="{% url 'admin:orders_order_changelist' %}" class="btn btn-outline-primary w-100">
+                            <i class="bi bi-list-check"></i> Manage Orders
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <a href="{% url 'admin:accounts_user_changelist' %}" class="btn btn-outline-warning w-100">
+                            <i class="bi bi-people"></i> Manage Users
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

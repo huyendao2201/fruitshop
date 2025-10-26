@@ -1,0 +1,347 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Đăng Nhập - Fresh Berry{% endblock %}
+
+{% block extra_css %}
+<style>
+    .auth-page {
+        min-height: calc(100vh - 200px);
+        display: flex;
+        align-items: center;
+        padding: 60px 0;
+        background: #f8f9fa;
+        position: relative;
+    }
+    
+    .auth-container {
+        position: relative;
+        z-index: 1;
+    }
+    
+    .auth-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        overflow: hidden;
+        max-width: 450px;
+        margin: 0 auto;
+    }
+    
+    .auth-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 40px 30px;
+        text-align: center;
+        color: white;
+    }
+    
+    .auth-header h2 {
+        margin: 0;
+        font-size: 28px;
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+    
+    .auth-header p {
+        margin: 0;
+        opacity: 0.9;
+        font-size: 14px;
+    }
+    
+    .auth-icon {
+        width: 70px;
+        height: 70px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+        backdrop-filter: blur(10px);
+    }
+    
+    .auth-icon i {
+        font-size: 35px;
+        color: white;
+    }
+    
+    .auth-body {
+        padding: 40px 30px;
+    }
+    
+    .form-group {
+        margin-bottom: 25px;
+        position: relative;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        color: #333;
+        font-weight: 600;
+        font-size: 14px;
+    }
+    
+    .form-control-custom {
+        width: 100%;
+        padding: 12px 15px;
+        border: 2px solid #e1e8ed;
+        border-radius: 10px;
+        font-size: 15px;
+        transition: all 0.3s ease;
+        background: white;
+    }
+    
+    .form-control-custom:focus {
+        outline: none;
+        border-color: #667eea;
+        background: white;
+        box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+    }
+    
+    .input-wrapper {
+        position: relative;
+        display: block;
+    }
+    
+    .form-icon {
+        position: absolute;
+        left: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #667eea;
+        font-size: 18px;
+        pointer-events: none;
+        z-index: 1;
+    }
+    
+    .input-wrapper.has-icon .form-control-custom {
+        padding-left: 48px !important;
+        padding-right: 15px !important;
+        padding-top: 12px !important;
+        padding-bottom: 12px !important;
+    }
+    
+    .btn-login {
+        width: 100%;
+        padding: 14px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        border-radius: 10px;
+        color: white;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    }
+    
+    .btn-login:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+    }
+    
+    .btn-login:active {
+        transform: translateY(0);
+    }
+    
+    .divider {
+        text-align: center;
+        margin: 25px 0;
+        position: relative;
+    }
+    
+    .divider::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 50%;
+        width: 100%;
+        height: 1px;
+        background: #e1e8ed;
+    }
+    
+    .divider span {
+        background: white;
+        padding: 0 15px;
+        color: #999;
+        font-size: 14px;
+        position: relative;
+    }
+    
+    .auth-footer {
+        text-align: center;
+        margin-top: 25px;
+    }
+    
+    .auth-footer p {
+        color: #666;
+        font-size: 14px;
+        margin: 0;
+    }
+    
+    .auth-footer a {
+        color: #667eea;
+        text-decoration: none;
+        font-weight: 600;
+        transition: color 0.3s ease;
+    }
+    
+    .auth-footer a:hover {
+        color: #764ba2;
+        text-decoration: underline;
+    }
+    
+    .alert-custom {
+        padding: 12px 15px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        border: none;
+        background: #fee;
+        color: #c33;
+        font-size: 14px;
+    }
+    
+    .password-toggle {
+        position: absolute;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        cursor: pointer;
+        color: #999;
+        font-size: 18px;
+        transition: color 0.3s ease;
+    }
+    
+    .password-toggle:hover {
+        color: #667eea;
+    }
+    
+    .remember-me {
+        display: flex;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+    
+    .remember-me input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        margin-right: 8px;
+        cursor: pointer;
+        accent-color: #667eea;
+    }
+    
+    .remember-me label {
+        margin: 0;
+        cursor: pointer;
+        font-weight: 400;
+        font-size: 14px;
+        color: #666;
+    }
+    
+    .forgot-password {
+        text-align: right;
+        margin-top: -15px;
+        margin-bottom: 20px;
+    }
+    
+    .forgot-password a {
+        color: #667eea;
+        text-decoration: none;
+        font-size: 13px;
+        transition: color 0.3s ease;
+    }
+    
+    .forgot-password a:hover {
+        color: #764ba2;
+        text-decoration: underline;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-page">
+    <div class="container auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <div class="auth-icon">
+                    <i class="bi bi-person-circle"></i>
+                </div>
+                <h2>Đăng Nhập</h2>
+                <p>Chào mừng bạn trở lại!</p>
+            </div>
+            
+            <div class="auth-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    {% if form.errors %}
+                        <div class="alert-custom">
+                            <i class="bi bi-exclamation-circle"></i>
+                            Tên đăng nhập hoặc mật khẩu không đúng. Vui lòng thử lại.
+                        </div>
+                    {% endif %}
+                    
+                    <div class="form-group">
+                        <label for="{{ form.username.id_for_label }}">Tên Đăng Nhập</label>
+                        <div class="input-wrapper has-icon">
+                            <i class="bi bi-person-fill form-icon"></i>
+                            <input type="text" 
+                                   class="form-control-custom" 
+                                   name="{{ form.username.name }}" 
+                                   id="{{ form.username.id_for_label }}" 
+                                   placeholder="Nhập tên đăng nhập"
+                                   required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="{{ form.password.id_for_label }}">Mật Khẩu</label>
+                        <div class="input-wrapper has-icon">
+                            <i class="bi bi-lock-fill form-icon"></i>
+                            <input type="password" 
+                                   class="form-control-custom" 
+                                   name="{{ form.password.name }}" 
+                                   id="{{ form.password.id_for_label }}"
+                                   placeholder="Nhập mật khẩu"
+                                   required>
+                            <i class="bi bi-eye password-toggle" onclick="togglePassword()" id="toggleIcon"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="remember-me">
+                        <input type="checkbox" id="rememberMe" name="remember_me">
+                        <label for="rememberMe">Ghi nhớ đăng nhập</label>
+                    </div>
+                    
+                    <button type="submit" class="btn-login">
+                        <i class="bi bi-box-arrow-in-right"></i>
+                        Đăng Nhập
+                    </button>
+                </form>
+                
+                <div class="auth-footer">
+                    <p>Chưa có tài khoản? <a href="{% url 'accounts:register' %}">Đăng ký ngay</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function togglePassword() {
+    const passwordInput = document.getElementById('{{ form.password.id_for_label }}');
+    const toggleIcon = document.getElementById('toggleIcon');
+    
+    if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        toggleIcon.classList.remove('bi-eye');
+        toggleIcon.classList.add('bi-eye-slash');
+    } else {
+        passwordInput.type = 'password';
+        toggleIcon.classList.remove('bi-eye-slash');
+        toggleIcon.classList.add('bi-eye');
+    }
+}
+</script>
+{% endblock %}

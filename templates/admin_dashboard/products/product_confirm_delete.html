@@ -1,0 +1,81 @@
+{% extends 'admin_dashboard/base.html' %}
+
+{% block title %}Xóa Sản Phẩm{% endblock %}
+
+{% block page_title %}Xóa Sản Phẩm{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="card shadow mb-4 border-danger">
+            <div class="card-header py-3 bg-danger">
+                <h6 class="m-0 font-weight-bold text-white">
+                    <i class="fas fa-exclamation-triangle"></i> Xác Nhận Xóa Sản Phẩm
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    {% if product.get_primary_image %}
+                    <img src="{{ product.get_primary_image.url }}" alt="{{ product.name }}" style="width: 150px; height: 150px; object-fit: cover; border-radius: 10px;">
+                    {% else %}
+                    <div style="width: 150px; height: 150px; background: #eee; display: flex; align-items: center; justify-content: center; border-radius: 10px; margin: 0 auto;">
+                        <i class="fas fa-image fa-4x text-gray-400"></i>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <h5 class="text-center font-weight-bold mb-3">{{ product.name }}</h5>
+                
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>Cảnh báo!</strong> Bạn có chắc chắn muốn xóa sản phẩm này không? Hành động này không thể hoàn tác!
+                </div>
+                
+                <div class="mb-4">
+                    <h6 class="font-weight-bold">Thông Tin Sản Phẩm:</h6>
+                    <ul>
+                        <li><strong>ID:</strong> {{ product.id }}</li>
+                        <li><strong>Danh mục:</strong> {{ product.category.name|default:"—" }}</li>
+                        <li><strong>Giá:</strong> {{ product.price|floatformat:0 }}đ</li>
+                        <li><strong>Tồn kho:</strong> {{ product.stock }}</li>
+                        <li><strong>Trạng thái:</strong> {% if product.is_active %}<span class="badge badge-success">Hoạt động</span>{% else %}<span class="badge-secondary">Ngừng</span>{% endif %}</li>
+                    </ul>
+                </div>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="text-center">
+                        <button type="submit" class="btn btn-danger btn-lg">
+                            <i class="fas fa-trash"></i> Xác Nhận Xóa
+                        </button>
+                        <a href="{% url 'reports:product_list' %}" class="btn btn-secondary btn-lg">
+                            <i class="fas fa-times"></i> Hủy
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

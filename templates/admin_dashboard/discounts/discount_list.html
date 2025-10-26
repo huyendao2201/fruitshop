@@ -1,0 +1,250 @@
+{% extends 'admin_dashboard/base.html' %}
+
+{% block title %}Quản Lý Mã Giảm Giá{% endblock %}
+
+{% block page_title %}Quản Lý Mã Giảm Giá{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'reports:discount_add' %}" class="btn btn-sm btn-success shadow-sm">
+    <i class="fas fa-plus fa-sm text-white-50"></i> Thêm Mã Giảm Giá Mới
+</a>
+{% endblock %}
+
+{% block content %}
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-xl-3 col-md-6 mb-3">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Tổng Mã Giảm Giá</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_discounts }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-ticket-alt fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6 mb-3">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Đang Hoạt Động</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ active_discounts }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6 mb-3">
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Còn Hiệu Lực</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ valid_discounts }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-calendar-check fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6 mb-3">
+        <div class="card border-left-danger shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Đã Hết Hạn</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ expired_discounts }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-calendar-times fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Bộ Lọc & Tìm Kiếm</h6>
+    </div>
+    <div class="card-body">
+        <form method="get" class="form-inline">
+            <div class="form-group mr-2 mb-2">
+                <input type="text" name="search" class="form-control" placeholder="Tìm mã giảm giá..." value="{{ search }}">
+            </div>
+            
+            <div class="form-group mr-2 mb-2">
+                <select name="status" class="form-control">
+                    <option value="">Tất cả trạng thái</option>
+                    <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Đang hoạt động</option>
+                    <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Ngừng hoạt động</option>
+                    <option value="valid" {% if status_filter == 'valid' %}selected{% endif %}>Còn hiệu lực</option>
+                    <option value="expired" {% if status_filter == 'expired' %}selected{% endif %}>Đã hết hạn</option>
+                </select>
+            </div>
+            
+            <div class="form-group mr-2 mb-2">
+                <select name="type" class="form-control">
+                    <option value="">Tất cả loại</option>
+                    <option value="percentage" {% if type_filter == 'percentage' %}selected{% endif %}>Phần trăm (%)</option>
+                    <option value="fixed" {% if type_filter == 'fixed' %}selected{% endif %}>Số tiền cố định (đ)</option>
+                </select>
+            </div>
+            
+            <button type="submit" class="btn btn-primary mb-2 mr-2">
+                <i class="fas fa-search"></i> Lọc
+            </button>
+            <a href="{% url 'reports:discount_list' %}" class="btn btn-secondary mb-2">
+                <i class="fas fa-redo"></i> Đặt lại
+            </a>
+        </form>
+    </div>
+</div>
+
+<!-- Discount Table -->
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Danh Sách Mã Giảm Giá ({{ page_obj.paginator.count }} mã)</h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover" width="100%" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Mã Code</th>
+                        <th>Loại</th>
+                        <th>Giá Trị</th>
+                        <th>Đơn Tối Thiểu</th>
+                        <th>Đã Dùng / Tối Đa</th>
+                        <th>Thời Hạn</th>
+                        <th>Trạng Thái</th>
+                        <th>Thao Tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for discount in discounts %}
+                    <tr>
+                        <td>{{ discount.id }}</td>
+                        <td>
+                            <a href="{% url 'reports:discount_detail' discount.id %}" class="font-weight-bold">
+                                <span class="badge badge-primary">{{ discount.code }}</span>
+                            </a>
+                        </td>
+                        <td>
+                            {% if discount.discount_type == 'percentage' %}
+                            <span class="badge badge-info"><i class="fas fa-percent"></i> Phần trăm</span>
+                            {% else %}
+                            <span class="badge badge-warning"><i class="fas fa-dollar-sign"></i> Số tiền</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if discount.discount_type == 'percentage' %}
+                            <strong class="text-success">{{ discount.value }}%</strong>
+                            {% else %}
+                            <strong class="text-success">{{ discount.value|floatformat:0 }}đ</strong>
+                            {% endif %}
+                        </td>
+                        <td>{{ discount.min_purchase|floatformat:0 }}đ</td>
+                        <td>
+                            <span class="badge badge-secondary">{{ discount.used_count }}</span>
+                            / 
+                            {% if discount.max_uses == 0 %}
+                            <span class="text-muted">∞</span>
+                            {% else %}
+                            <span class="badge badge-dark">{{ discount.max_uses }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <small>
+                                <div><strong>Từ:</strong> {{ discount.valid_from|date:"d/m/Y H:i" }}</div>
+                                <div><strong>Đến:</strong> {{ discount.valid_to|date:"d/m/Y H:i" }}</div>
+                            </small>
+                        </td>
+                        <td>
+                            {% if discount.is_valid %}
+                            <span class="badge badge-success"><i class="fas fa-check"></i> Hiệu lực</span>
+                            {% else %}
+                            <span class="badge badge-danger"><i class="fas fa-times"></i> Hết hạn</span>
+                            {% endif %}
+                            <br>
+                            {% if discount.is_active %}
+                            <span class="badge badge-success mt-1">Hoạt động</span>
+                            {% else %}
+                            <span class="badge badge-secondary mt-1">Tắt</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'reports:discount_detail' discount.id %}" class="btn btn-info btn-sm" title="Xem chi tiết">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="{% url 'reports:discount_edit' discount.id %}" class="btn btn-warning btn-sm" title="Chỉnh sửa">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <a href="{% url 'reports:discount_delete' discount.id %}" class="btn btn-danger btn-sm" title="Xóa" onclick="return confirm('Bạn có chắc muốn xóa mã giảm giá này?')">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="9" class="text-center text-muted py-4">
+                            <i class="fas fa-inbox fa-3x mb-3 d-block"></i>
+                            Không tìm thấy mã giảm giá nào
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Pagination -->
+        {% if is_paginated %}
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1{% if search %}&search={{ search }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if type_filter %}&type={{ type_filter }}{% endif %}">Đầu</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search %}&search={{ search }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if type_filter %}&type={{ type_filter }}{% endif %}">Trước</a>
+                </li>
+                {% endif %}
+                
+                <li class="page-item active">
+                    <span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+                </li>
+                
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if type_filter %}&type={{ type_filter }}{% endif %}">Sau</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if search %}&search={{ search }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if type_filter %}&type={{ type_filter }}{% endif %}">Cuối</a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}
+

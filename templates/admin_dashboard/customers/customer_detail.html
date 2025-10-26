@@ -1,0 +1,228 @@
+{% extends 'admin_dashboard/base.html' %}
+
+{% block title %}Chi Tiết Khách Hàng - {{ customer.full_name|default:customer.username }}{% endblock %}
+
+{% block page_title %}Chi Tiết Khách Hàng{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'reports:customer_list' %}" class="btn btn-sm btn-secondary shadow-sm">
+    <i class="fas fa-arrow-left fa-sm"></i> Quay Lại
+</a>
+{% endblock %}
+
+{% block content %}
+
+<div class="row">
+    <!-- Left Column -->
+    <div class="col-lg-4">
+        <!-- Customer Info Card -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Thông Tin Khách Hàng</h6>
+            </div>
+            <div class="card-body text-center">
+                <i class="fas fa-user-circle fa-5x text-gray-400 mb-3"></i>
+                <h4 class="font-weight-bold">{{ customer.full_name|default:customer.username }}</h4>
+                <p class="text-muted mb-3">{{ customer.email }}</p>
+                
+                {% if customer.is_active %}
+                <span class="badge badge-success badge-lg mb-3">Hoạt Động</span>
+                {% else %}
+                <span class="badge badge-secondary badge-lg mb-3">Ngừng Hoạt Động</span>
+                {% endif %}
+                
+                <hr>
+                
+                <div class="text-left">
+                    <p class="mb-2"><strong>ID:</strong> {{ customer.id }}</p>
+                    <p class="mb-2"><strong>Username:</strong> {{ customer.username }}</p>
+                    <p class="mb-2"><strong>Email:</strong> {{ customer.email }}</p>
+                    <p class="mb-2"><strong>SĐT:</strong> {{ customer.phone|default:"—" }}</p>
+                    <p class="mb-2"><strong>Địa chỉ:</strong> {{ customer.address|default:"—" }}</p>
+                    <p class="mb-2"><strong>Ngày đăng ký:</strong> {{ customer.date_joined|date:"d/m/Y H:i" }}</p>
+                    <p class="mb-0"><strong>Lần đăng nhập cuối:</strong> {{ customer.last_login|date:"d/m/Y H:i"|default:"Chưa đăng nhập" }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Statistics Card -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Thống Kê</h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="font-weight-bold">Tổng Đơn Hàng:</span>
+                        <span class="h5 mb-0 text-primary">{{ total_orders }}</span>
+                    </div>
+                    <div class="progress">
+                        <div class="progress-bar bg-primary" role="progressbar" style="width: 100%"></div>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="font-weight-bold">Tổng Chi Tiêu:</span>
+                        <span class="h5 mb-0 text-success">{{ total_spent|floatformat:0 }}đ</span>
+                    </div>
+                    <div class="progress">
+                        <div class="progress-bar bg-success" role="progressbar" style="width: 100%"></div>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="font-weight-bold">Tổng Đánh Giá:</span>
+                        <span class="h5 mb-0 text-info">{{ total_reviews }}</span>
+                    </div>
+                    <div class="progress">
+                        <div class="progress-bar bg-info" role="progressbar" style="width: 100%"></div>
+                    </div>
+                </div>
+                
+                <div class="mb-0">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="font-weight-bold">Điểm Đánh Giá TB:</span>
+                        <span class="h5 mb-0 text-warning">
+                            {{ avg_rating|floatformat:1 }} <i class="fas fa-star"></i>
+                        </span>
+                    </div>
+                    <div class="progress">
+                        <div class="progress-bar bg-warning" role="progressbar" style="width: {{ avg_rating|floatformat:0|default:0 }}0%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Right Column -->
+    <div class="col-lg-8">
+        <!-- Orders -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold text-primary">Đơn Hàng Gần Đây</h6>
+                <a href="{% url 'reports:order_list' %}?search={{ customer.email }}" class="btn btn-sm btn-primary">
+                    Xem Tất Cả
+                </a>
+            </div>
+            <div class="card-body">
+                {% if orders %}
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover">
+                        <thead>
+                            <tr>
+                                <th>Mã Đơn</th>
+                                <th>Ngày Đặt</th>
+                                <th>Tổng Tiền</th>
+                                <th>Trạng Thái</th>
+                                <th>Thao Tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for order in orders %}
+                            <tr>
+                                <td><a href="{% url 'reports:order_detail' order.id %}" class="font-weight-bold">#{{ order.order_number }}</a></td>
+                                <td>{{ order.created_at|date:"d/m/Y" }}</td>
+                                <td class="font-weight-bold">{{ order.total_amount|floatformat:0 }}đ</td>
+                                <td>
+                                    {% if order.status == 'pending' %}
+                                    <span class="badge badge-warning">Chờ xác nhận</span>
+                                    {% elif order.status == 'confirmed' %}
+                                    <span class="badge badge-info">Đã xác nhận</span>
+                                    {% elif order.status == 'processing' %}
+                                    <span class="badge badge-primary">Đang xử lý</span>
+                                    {% elif order.status == 'shipped' %}
+                                    <span class="badge badge-primary">Đã giao vận</span>
+                                    {% elif order.status == 'delivered' %}
+                                    <span class="badge badge-success">Đã giao hàng</span>
+                                    {% elif order.status == 'cancelled' %}
+                                    <span class="badge badge-danger">Đã hủy</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{% url 'reports:order_detail' order.id %}" class="btn btn-info btn-sm">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-center text-muted py-4">
+                    <i class="fas fa-inbox fa-3x mb-3 d-block"></i>
+                    Chưa có đơn hàng nào
+                </p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Reviews -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Đánh Giá Gần Đây</h6>
+            </div>
+            <div class="card-body">
+                {% if reviews %}
+                {% for review in reviews %}
+                <div class="media mb-3 pb-3 {% if not forloop.last %}border-bottom{% endif %}">
+                    <div class="media-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                                <a href="{% url 'reports:product_detail' review.product.id %}" class="font-weight-bold">{{ review.product.name }}</a>
+                                <div class="text-warning">
+                                    {% for i in "12345" %}
+                                    {% if forloop.counter <= review.rating %}
+                                    <i class="fas fa-star"></i>
+                                    {% else %}
+                                    <i class="far fa-star"></i>
+                                    {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <small class="text-muted">{{ review.created_at|date:"d/m/Y" }}</small>
+                        </div>
+                        <p class="mb-0 text-muted">{{ review.comment|truncatewords:30 }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+                {% else %}
+                <p class="text-center text-muted py-4">
+                    <i class="fas fa-inbox fa-3x mb-3 d-block"></i>
+                    Chưa có đánh giá nào
+                </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .badge-lg {
+        font-size: 1rem;
+        padding: 0.5rem 1rem;
+    }
+</style>
+
+{% endblock %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

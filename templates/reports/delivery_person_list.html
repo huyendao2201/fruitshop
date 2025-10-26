@@ -1,0 +1,315 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Delivery Persons - Fresh Fruit Shop{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2><i class="bi bi-person-badge"></i> Nhân Viên Giao Hàng</h2>
+                    <p class="text-muted">Quản lý danh sách nhân viên giao hàng</p>
+                </div>
+                <div>
+                    <a href="{% url 'reports:dashboard' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-speedometer2"></i> Dashboard
+                    </a>
+                    <a href="{% url 'reports:delivery_list' %}" class="btn btn-outline-primary">
+                        <i class="bi bi-truck"></i> Danh Sách Giao Hàng
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-lg-4 col-md-6 mb-3">
+            <div class="card text-center border-primary">
+                <div class="card-body">
+                    <h4 class="text-primary mb-0">{{ total_count }}</h4>
+                    <small class="text-muted">Tổng Nhân Viên</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-6 mb-3">
+            <div class="card text-center border-success">
+                <div class="card-body">
+                    <h4 class="text-success mb-0">{{ active_count }}</h4>
+                    <small class="text-muted">Đang Hoạt Động</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-6 mb-3">
+            <div class="card text-center border-secondary">
+                <div class="card-body">
+                    <h4 class="text-secondary mb-0">{{ inactive_count }}</h4>
+                    <small class="text-muted">Không Hoạt Động</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Tìm kiếm</label>
+                            <input type="text" name="search" class="form-control" 
+                                   placeholder="Tên, Email, SĐT..." 
+                                   value="{{ request.GET.search }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Trạng thái</label>
+                            <select name="is_active" class="form-select">
+                                <option value="">Tất cả</option>
+                                <option value="true" {% if request.GET.is_active == 'true' %}selected{% endif %}>
+                                    Đang hoạt động
+                                </option>
+                                <option value="false" {% if request.GET.is_active == 'false' %}selected{% endif %}>
+                                    Không hoạt động
+                                </option>
+                            </select>
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <div class="w-100">
+                                <button type="submit" class="btn btn-primary w-100 mb-2">
+                                    <i class="bi bi-search"></i> Lọc
+                                </button>
+                                <a href="{% url 'reports:delivery_person_list' %}" class="btn btn-outline-secondary w-100">
+                                    <i class="bi bi-x-circle"></i> Reset
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delivery Persons List -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    {% if delivery_persons %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nhân Viên</th>
+                                    <th>Liên Hệ</th>
+                                    <th>Phương Tiện</th>
+                                    <th>Đơn Đang Giao</th>
+                                    <th>Tổng Đơn</th>
+                                    <th>Thành Công</th>
+                                    <th>Tỷ Lệ TC</th>
+                                    <th>Đánh Giá</th>
+                                    <th>Trạng Thái</th>
+                                    <th>Thao Tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for person in delivery_persons %}
+                                <tr class="{% if not person.is_active %}table-secondary{% endif %}">
+                                    <td>#{{ person.id }}</td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-circle me-2">
+                                                {{ person.user.get_full_name|first|upper }}
+                                            </div>
+                                            <div>
+                                                <strong>{{ person.user.get_full_name|default:person.user.username }}</strong>
+                                                <br>
+                                                <small class="text-muted">@{{ person.user.username }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            <i class="bi bi-phone"></i> {{ person.phone }}
+                                        </div>
+                                        {% if person.user.email %}
+                                        <small class="text-muted">
+                                            <i class="bi bi-envelope"></i> {{ person.user.email|truncatechars:25 }}
+                                        </small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if person.vehicle_type == 'motorbike' %}
+                                            <span class="badge bg-info">
+                                                <i class="bi bi-scooter"></i> Xe Máy
+                                            </span>
+                                        {% elif person.vehicle_type == 'bicycle' %}
+                                            <span class="badge bg-success">
+                                                <i class="bi bi-bicycle"></i> Xe Đạp
+                                            </span>
+                                        {% elif person.vehicle_type == 'car' %}
+                                            <span class="badge bg-primary">
+                                                <i class="bi bi-car-front"></i> Ô Tô
+                                            </span>
+                                        {% elif person.vehicle_type == 'truck' %}
+                                            <span class="badge bg-dark">
+                                                <i class="bi bi-truck"></i> Xe Tải
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">{{ person.get_vehicle_type_display }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        {% if person.current_deliveries_count > 0 %}
+                                            <span class="badge bg-warning">{{ person.current_deliveries_count }}</span>
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        <strong>{{ person.total_deliveries }}</strong>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="text-success">{{ person.successful_deliveries }}</span>
+                                    </td>
+                                    <td class="text-center">
+                                        {% if person.total_deliveries > 0 %}
+                                            {% if person.success_rate_calc >= 90 %}
+                                                <span class="badge bg-success">{{ person.success_rate_calc|floatformat:1 }}%</span>
+                                            {% elif person.success_rate_calc >= 70 %}
+                                                <span class="badge bg-info">{{ person.success_rate_calc|floatformat:1 }}%</span>
+                                            {% elif person.success_rate_calc >= 50 %}
+                                                <span class="badge bg-warning">{{ person.success_rate_calc|floatformat:1 }}%</span>
+                                            {% else %}
+                                                <span class="badge bg-danger">{{ person.success_rate_calc|floatformat:1 }}%</span>
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="text-muted">N/A</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        {% if person.rating %}
+                                            <div class="rating">
+                                                <span class="text-warning">
+                                                    {% for i in "12345" %}
+                                                        {% if forloop.counter <= person.rating %}
+                                                            <i class="bi bi-star-fill"></i>
+                                                        {% else %}
+                                                            <i class="bi bi-star"></i>
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                </span>
+                                                <br>
+                                                <small class="text-muted">{{ person.rating|floatformat:1 }}</small>
+                                            </div>
+                                        {% else %}
+                                            <span class="text-muted">Chưa có</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if person.is_active %}
+                                            <span class="badge bg-success">
+                                                <i class="bi bi-check-circle"></i> Hoạt động
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">
+                                                <i class="bi bi-x-circle"></i> Tạm ngưng
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'reports:delivery_person_detail' person.id %}" 
+                                           class="btn btn-sm btn-outline-primary" 
+                                           title="Chi tiết">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    {% if is_paginated %}
+                    <nav aria-label="Page navigation" class="mt-4">
+                        <ul class="pagination justify-content-center">
+                            {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page=1{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.is_active %}&is_active={{ request.GET.is_active }}{% endif %}">First</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.is_active %}&is_active={{ request.GET.is_active }}{% endif %}">Previous</a>
+                            </li>
+                            {% endif %}
+
+                            <li class="page-item active">
+                                <span class="page-link">
+                                    Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                                </span>
+                            </li>
+
+                            {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.is_active %}&is_active={{ request.GET.is_active }}{% endif %}">Next</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.is_active %}&is_active={{ request.GET.is_active }}{% endif %}">Last</a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-person-badge display-1 text-muted"></i>
+                        <p class="text-muted mt-3">Không tìm thấy nhân viên giao hàng nào</p>
+                        <a href="{% url 'reports:delivery_person_list' %}" class="btn btn-outline-primary">Reset Filters</a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border-radius: 0.5rem;
+}
+
+.table td {
+    vertical-align: middle;
+}
+
+.avatar-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 18px;
+}
+
+.rating i {
+    font-size: 14px;
+}
+
+.table-secondary {
+    opacity: 0.7;
+}
+</style>
+{% endblock %}
+
+
+
+

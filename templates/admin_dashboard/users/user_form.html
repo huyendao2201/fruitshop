@@ -1,0 +1,306 @@
+{% extends 'admin_dashboard/base.html' %}
+
+{% block title %}{% if is_create %}Thêm User Mới{% else %}Chỉnh Sửa User{% endif %}{% endblock %}
+
+{% block page_title %}{% if is_create %}Thêm User Mới{% else %}Chỉnh Sửa User: {{ form.instance.username }}{% endif %}{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'reports:user_list' %}" class="btn btn-sm btn-secondary shadow-sm">
+    <i class="fas fa-arrow-left fa-sm"></i> Quay lại
+</a>
+{% endblock %}
+
+{% block content %}
+
+<div class="row">
+    <div class="col-lg-10">
+        <form method="post" action="" id="userForm">
+            {% csrf_token %}
+            
+            {% if form.errors %}
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <strong>Lỗi!</strong> Vui lòng kiểm tra lại các trường bên dưới.
+                <ul class="mb-0 mt-2">
+                    {% for field in form %}
+                        {% for error in field.errors %}
+                            <li>{{ field.label }}: {{ error }}</li>
+                        {% endfor %}
+                    {% endfor %}
+                </ul>
+                <button type="button" class="close" data-dismiss="alert">
+                    <span>&times;</span>
+                </button>
+            </div>
+            {% endif %}
+
+            <!-- Thông Tin User Mới -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Thông Tin User Mới</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.username.id_for_label }}">
+                                    Username <span class="text-danger">*</span>
+                                </label>
+                                {{ form.username }}
+                                {% if form.username.help_text %}
+                                    <small class="form-text text-muted">{{ form.username.help_text }}</small>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.email.id_for_label }}">Email</label>
+                                {{ form.email }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label for="{% if is_create %}password{% else %}new_password{% endif %}">
+                                    Mật Khẩu {% if is_create %}<span class="text-danger">*</span>{% endif %}
+                                </label>
+                                {% if is_create %}
+                                <input type="text" class="form-control" id="password" name="password" value="password123" required>
+                                <small class="form-text text-muted">Mật khẩu mặc định (user nên đổi sau khi đăng nhập lần đầu)</small>
+                                {% else %}
+                                <input type="text" class="form-control" id="new_password" name="new_password" placeholder="Nhập mật khẩu mới...">
+                                <small class="form-text text-muted">Chỉ nhập nếu muốn đổi mật khẩu</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.first_name.id_for_label }}">Họ</label>
+                                {{ form.first_name }}
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.last_name.id_for_label }}">Tên</label>
+                                {{ form.last_name }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.phone.id_for_label }}">Số Điện Thoại</label>
+                                {{ form.phone }}
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.address.id_for_label }}">Địa Chỉ</label>
+                                {{ form.address }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quyền Hệ Thống -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Quyền Hệ Thống</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="custom-control custom-checkbox mb-3">
+                                {{ form.is_active }}
+                                <label class="custom-control-label" for="{{ form.is_active.id_for_label }}">
+                                    <strong>Hoạt Động</strong><br>
+                                    <small class="text-muted">User có thể đăng nhập</small>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="custom-control custom-checkbox mb-3">
+                                {{ form.is_staff }}
+                                <label class="custom-control-label" for="{{ form.is_staff.id_for_label }}">
+                                    <strong>Staff</strong><br>
+                                    <small class="text-muted">Truy cập Django Admin</small>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="custom-control custom-checkbox mb-3">
+                                {{ form.is_superuser }}
+                                <label class="custom-control-label" for="{{ form.is_superuser.id_for_label }}">
+                                    <strong class="text-danger">Superuser</strong><br>
+                                    <small class="text-muted">Quyền cao nhất</small>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Groups/Roles -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Groups/Roles</h6>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-3">Chọn các group mà user thuộc về:</p>
+                    <div class="row">
+                        {% for group in groups %}
+                        <div class="col-md-3 col-sm-6">
+                            <div class="custom-control custom-checkbox mb-3">
+                                <input type="checkbox" 
+                                       class="custom-control-input" 
+                                       id="group_{{ group.id }}" 
+                                       name="groups" 
+                                       value="{{ group.id }}"
+                                       {% if group in user_groups %}checked{% endif %}>
+                                <label class="custom-control-label" for="group_{{ group.id }}">
+                                    {% if group.name == 'Staff' %}
+                                        <span class="badge badge-warning">{{ group.name }}</span>
+                                    {% elif group.name == 'Shipper' %}
+                                        <span class="badge badge-info">{{ group.name }}</span>
+                                    {% elif group.name == 'Customer' %}
+                                        <span class="badge badge-success">{{ group.name }}</span>
+                                    {% else %}
+                                        <span class="badge badge-secondary">{{ group.name }}</span>
+                                    {% endif %}
+                                    <br>
+                                    <small class="text-muted">{{ group.permissions.count }} permissions</small>
+                                </label>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="text-center mb-4">
+                <button type="submit" class="btn btn-primary btn-lg px-5">
+                    <i class="fas fa-save"></i>
+                    {% if is_create %}Thêm User{% else %}Cập Nhật{% endif %}
+                </button>
+                <a href="{% url 'reports:user_list' %}" class="btn btn-secondary btn-lg px-5 ml-2">
+                    <i class="fas fa-times"></i> Hủy
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <div class="col-lg-2">
+        <!-- Help Card -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 bg-info text-white">
+                <h6 class="m-0 font-weight-bold">
+                    <i class="fas fa-info-circle"></i> Hướng Dẫn
+                </h6>
+            </div>
+            <div class="card-body">
+                <h6 class="font-weight-bold small">Các Loại User:</h6>
+                <ul class="small mb-3">
+                    <li><strong>Admin:</strong> is_superuser = True</li>
+                    <li><strong>Staff:</strong> is_staff = True + Group "Staff"</li>
+                    <li><strong>Shipper:</strong> Group "Shipper"</li>
+                    <li><strong>Customer:</strong> Group "Customer"</li>
+                </ul>
+
+                <h6 class="font-weight-bold small">Lưu Ý:</h6>
+                <ul class="small mb-0">
+                    <li>Username phải là duy nhất</li>
+                    <li>Superuser có quyền cao nhất</li>
+                    <li>is_staff cho phép truy cập Django Admin</li>
+                    <li>Groups quyết định quyền hạn cụ thể</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-control {
+        border: 1px solid #d1d3e2;
+        border-radius: 0.35rem;
+        padding: 0.75rem;
+        font-size: 0.9rem;
+    }
+    
+    .form-control:focus {
+        border-color: #4e73df;
+        box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.15);
+    }
+    
+    .custom-control-input:checked ~ .custom-control-label::before {
+        background-color: #4e73df;
+        border-color: #4e73df;
+    }
+    
+    .custom-control-label {
+        padding-top: 3px;
+        cursor: pointer;
+    }
+    
+    label {
+        color: #5a5c69;
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+    }
+    
+    .card {
+        border: 1px solid #e3e6f0;
+        border-radius: 0.35rem;
+    }
+    
+    .card-header {
+        background-color: #f8f9fc;
+        border-bottom: 1px solid #e3e6f0;
+    }
+    
+    .badge {
+        padding: 0.35rem 0.65rem;
+        font-size: 0.85rem;
+    }
+    
+    .btn-lg {
+        padding: 0.75rem 2rem;
+        font-size: 1rem;
+    }
+    
+    small.text-muted {
+        color: #858796 !important;
+        font-size: 0.8rem;
+    }
+    
+    .alert {
+        border-radius: 0.35rem;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Auto-hide alerts after 5 seconds
+        setTimeout(function() {
+            $('.alert').fadeOut('slow');
+        }, 5000);
+    });
+</script>
+{% endblock %}

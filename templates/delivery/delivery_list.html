@@ -1,0 +1,165 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Danh sách giao hàng - Fresh Berry{% endblock %}
+
+{% block extra_css %}
+<style>
+    .list-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 2rem 0;
+        margin: -1rem -15px 2rem -15px;
+        border-radius: 0 0 20px 20px;
+    }
+    
+    .search-card {
+        background: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        margin-bottom: 2rem;
+    }
+    
+    .delivery-table {
+        background: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    }
+    
+    .status-badge {
+        padding: 0.3rem 0.8rem;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+    
+    .status-pending { background: #fff3cd; color: #856404; }
+    .status-assigned { background: #cfe2ff; color: #084298; }
+    .status-picked_up { background: #d1e7dd; color: #0f5132; }
+    .status-in_transit { background: #cff4fc; color: #055160; }
+    .status-delivered { background: #d1e7dd; color: #0f5132; }
+    .status-failed { background: #f8d7da; color: #842029; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="list-header">
+    <div class="container">
+        <h2><i class="bi bi-list-ul"></i> Danh sách giao hàng</h2>
+    </div>
+</div>
+
+<!-- Search Form -->
+<div class="search-card">
+    <form method="get" class="row g-3">
+        <div class="col-md-3">
+            {{ search_form.order_number }}
+        </div>
+        <div class="col-md-2">
+            {{ search_form.status }}
+        </div>
+        <div class="col-md-3">
+            {{ search_form.delivery_person }}
+        </div>
+        <div class="col-md-2">
+            {{ search_form.date_from }}
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary w-100">
+                <i class="bi bi-search"></i> Tìm kiếm
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Deliveries Table -->
+<div class="delivery-table">
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Mã đơn hàng</th>
+                    <th>Người nhận</th>
+                    <th>Nhân viên GH</th>
+                    <th>Trạng thái</th>
+                    <th>Ngày tạo</th>
+                    <th>Hành động</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for delivery in deliveries %}
+                <tr>
+                    <td>{{ delivery.id }}</td>
+                    <td>
+                        <strong>{{ delivery.order.order_number }}</strong><br>
+                        <small class="text-muted">${{ delivery.order.total_amount }}</small>
+                    </td>
+                    <td>
+                        {{ delivery.recipient_name }}<br>
+                        <small class="text-muted">{{ delivery.recipient_phone }}</small>
+                    </td>
+                    <td>
+                        {% if delivery.delivery_person %}
+                            {{ delivery.delivery_person.user.get_full_name }}<br>
+                            <small class="text-muted">{{ delivery.delivery_person.phone }}</small>
+                        {% else %}
+                            <span class="text-muted">Chưa phân công</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="status-badge status-{{ delivery.status }}">
+                            {{ delivery.get_status_display }}
+                        </span>
+                        {% if delivery.is_delayed %}
+                        <br><small class="text-danger"><i class="bi bi-exclamation-triangle"></i> Trễ</small>
+                        {% endif %}
+                    </td>
+                    <td>{{ delivery.created_at|date:"d/m/Y H:i" }}</td>
+                    <td>
+                        <a href="{% url 'delivery:detail' delivery.id %}" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                        {% if delivery.status == 'pending' %}
+                        <a href="{% url 'delivery:assign' delivery.id %}" class="btn btn-sm btn-outline-success">
+                            <i class="bi bi-person-plus"></i>
+                        </a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center text-muted py-4">
+                        Không tìm thấy đơn hàng nào
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="mt-3">
+    <a href="{% url 'delivery:dashboard' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Quay lại Dashboard
+    </a>
+</div>
+{% endblock %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

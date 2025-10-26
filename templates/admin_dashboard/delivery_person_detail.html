@@ -1,0 +1,303 @@
+{% extends 'admin_dashboard/base.html' %}
+{% load static %}
+
+{% block title %}{{ delivery_person.user.get_full_name }} - Nhân Viên Giao Hàng{% endblock %}
+
+{% block page_title %}{{ delivery_person.user.get_full_name|default:delivery_person.user.username }}{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'reports:delivery_person_list' %}" class="btn btn-secondary btn-sm">
+    <i class="fas fa-arrow-left"></i> Quay Lại
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Left Column - Profile & Stats -->
+    <div class="col-lg-4 mb-4">
+        <!-- Profile Card -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 bg-primary">
+                <h6 class="m-0 font-weight-bold text-white">
+                    <i class="fas fa-user-circle"></i> Thông Tin Cá Nhân
+                </h6>
+            </div>
+            <div class="card-body text-center">
+                <div class="avatar-large mb-3">
+                    {{ delivery_person.user.get_full_name|first|upper }}
+                </div>
+                <h4 class="mb-1">{{ delivery_person.user.get_full_name|default:delivery_person.user.username }}</h4>
+                <p class="text-muted mb-3">@{{ delivery_person.user.username }}</p>
+                
+                {% if delivery_person.is_active %}
+                    <span class="badge badge-success badge-lg mb-3">
+                        <i class="fas fa-check-circle"></i> Đang Hoạt Động
+                    </span>
+                {% else %}
+                    <span class="badge badge-secondary badge-lg mb-3">
+                        <i class="fas fa-pause-circle"></i> Tạm Ngưng
+                    </span>
+                {% endif %}
+
+                <hr>
+
+                <div class="text-left">
+                    <div class="mb-3">
+                        <i class="fas fa-phone text-primary"></i> 
+                        <strong>SĐT:</strong><br>
+                        <span class="ml-4">{{ delivery_person.phone }}</span>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <i class="fas fa-envelope text-primary"></i> 
+                        <strong>Email:</strong><br>
+                        <span class="ml-4">{{ delivery_person.user.email|default:"Chưa có" }}</span>
+                    </div>
+                    
+                    <div class="mb-3">
+                        {% if delivery_person.vehicle_type == 'motorbike' %}
+                            <i class="fas fa-motorcycle text-primary"></i>
+                        {% elif delivery_person.vehicle_type == 'bicycle' %}
+                            <i class="fas fa-bicycle text-primary"></i>
+                        {% elif delivery_person.vehicle_type == 'car' %}
+                            <i class="fas fa-car text-primary"></i>
+                        {% elif delivery_person.vehicle_type == 'truck' %}
+                            <i class="fas fa-truck text-primary"></i>
+                        {% endif %}
+                        <strong>Phương tiện:</strong><br>
+                        <span class="ml-4">{{ delivery_person.get_vehicle_type_display }}</span>
+                        {% if delivery_person.vehicle_number %}
+                        <br><span class="ml-4 text-muted">{{ delivery_person.vehicle_number }}</span>
+                        {% endif %}
+                    </div>
+                    
+                    {% if delivery_person.rating %}
+                    <div class="mb-0">
+                        <i class="fas fa-star text-warning"></i> 
+                        <strong>Đánh giá:</strong><br>
+                        <span class="ml-4">
+                            {{ delivery_person.rating|floatformat:1 }}/5.0
+                            <span class="text-warning">
+                                {% for i in "12345" %}
+                                    {% if forloop.counter <= delivery_person.rating %}
+                                        <i class="fas fa-star"></i>
+                                    {% else %}
+                                        <i class="far fa-star"></i>
+                                    {% endif %}
+                                {% endfor %}
+                            </span>
+                        </span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistics Card -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 bg-info">
+                <h6 class="m-0 font-weight-bold text-white">
+                    <i class="fas fa-chart-line"></i> Thống Kê
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-3 pb-3 border-bottom">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-muted">Tổng đơn hàng:</span>
+                        <strong class="h4 mb-0 text-primary">{{ delivery_person.total_deliveries }}</strong>
+                    </div>
+                </div>
+                
+                <div class="mb-3 pb-3 border-bottom">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-muted">Giao thành công:</span>
+                        <strong class="h4 mb-0 text-success">{{ delivery_person.successful_deliveries }}</strong>
+                    </div>
+                </div>
+                
+                <div class="mb-3 pb-3 border-bottom">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-muted">Tỷ lệ thành công:</span>
+                        {% if delivery_person.total_deliveries > 0 %}
+                            {% with success_rate=delivery_person.success_rate %}
+                            <strong class="h4 mb-0 
+                                {% if success_rate >= 90 %}text-success
+                                {% elif success_rate >= 70 %}text-info
+                                {% elif success_rate >= 50 %}text-warning
+                                {% else %}text-danger{% endif %}">
+                                {{ success_rate|floatformat:1 }}%
+                            </strong>
+                            {% endwith %}
+                        {% else %}
+                            <strong class="h4 mb-0 text-muted">N/A</strong>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="mb-0">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-muted">Đang giao:</span>
+                        <strong class="h4 mb-0 text-warning">{{ current_deliveries_count }}</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column - Delivery History -->
+    <div class="col-lg-8 mb-4">
+        <!-- Recent Deliveries -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-history"></i> Lịch Sử Giao Hàng Gần Đây
+                </h6>
+            </div>
+            <div class="card-body">
+                {% if recent_deliveries %}
+                <div class="table-responsive">
+                    <table class="table table-bordered" width="100%" cellspacing="0">
+                        <thead>
+                            <tr>
+                                <th>Mã Đơn</th>
+                                <th>Khách Hàng</th>
+                                <th>Địa Chỉ</th>
+                                <th>Trạng Thái</th>
+                                <th>Ngày Giao</th>
+                                <th>Chi Tiết</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for delivery in recent_deliveries %}
+                            <tr>
+                                <td>
+                                    <strong>#{{ delivery.order.order_number }}</strong>
+                                </td>
+                                <td>
+                                    {{ delivery.order.user.get_full_name|default:delivery.order.user.username }}
+                                    <br>
+                                    <small class="text-muted">
+                                        <i class="fas fa-phone"></i> {{ delivery.order.phone }}
+                                    </small>
+                                </td>
+                                <td>
+                                    <small>{{ delivery.order.address|truncatechars:40 }}</small>
+                                </td>
+                                <td>
+                                    {% if delivery.status == 'pending' %}
+                                        <span class="badge badge-warning">Chờ xử lý</span>
+                                    {% elif delivery.status == 'assigned' %}
+                                        <span class="badge badge-info">Đã phân công</span>
+                                    {% elif delivery.status == 'in_transit' %}
+                                        <span class="badge badge-primary">Đang giao</span>
+                                    {% elif delivery.status == 'delivered' %}
+                                        <span class="badge badge-success">Đã giao</span>
+                                    {% elif delivery.status == 'failed' %}
+                                        <span class="badge badge-danger">Thất bại</span>
+                                    {% elif delivery.status == 'returned' %}
+                                        <span class="badge badge-secondary">Đã hoàn</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if delivery.delivered_at %}
+                                        {{ delivery.delivered_at|date:"d/m/Y H:i" }}
+                                    {% elif delivery.assigned_at %}
+                                        {{ delivery.assigned_at|date:"d/m/Y H:i" }}
+                                    {% else %}
+                                        <span class="text-muted">Chưa giao</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{% url 'reports:delivery_detail' delivery.id %}" 
+                                       class="btn btn-sm btn-primary">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-box-open fa-3x text-gray-300 mb-3"></i>
+                    <p class="text-muted">Chưa có lịch sử giao hàng</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Performance Chart (Optional) -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-chart-bar"></i> Hiệu Suất
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-4 mb-3">
+                        <div class="border rounded p-3">
+                            <h3 class="text-primary">{{ delivery_person.total_deliveries }}</h3>
+                            <p class="text-muted mb-0">Tổng Đơn</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="border rounded p-3">
+                            <h3 class="text-success">{{ delivery_person.successful_deliveries }}</h3>
+                            <p class="text-muted mb-0">Thành Công</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="border rounded p-3">
+                            <h3 class="text-danger">{{ failed_deliveries }}</h3>
+                            <p class="text-muted mb-0">Thất Bại</p>
+                        </div>
+                    </div>
+                </div>
+                
+                {% if delivery_person.total_deliveries > 0 %}
+                <div class="progress mt-3" style="height: 30px;">
+                    <div class="progress-bar bg-success" role="progressbar" 
+                         style="width: {{ delivery_person.success_rate }}%;" 
+                         aria-valuenow="{{ delivery_person.success_rate }}" 
+                         aria-valuemin="0" aria-valuemax="100">
+                        {{ delivery_person.success_rate|floatformat:1 }}% Thành Công
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.avatar-large {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+    color: white;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 48px;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.badge-lg {
+    font-size: 1rem;
+    padding: 0.5rem 1rem;
+}
+
+.stat-item {
+    padding: 10px 0;
+}
+
+.table td {
+    vertical-align: middle;
+}
+</style>
+{% endblock %}
+

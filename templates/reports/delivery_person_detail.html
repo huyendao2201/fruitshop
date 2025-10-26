@@ -1,0 +1,314 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ delivery_person.user.get_full_name }} - Delivery Person{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2>
+                        <i class="bi bi-person-badge"></i> 
+                        {{ delivery_person.user.get_full_name|default:delivery_person.user.username }}
+                    </h2>
+                    <p class="text-muted">Chi tiết nhân viên giao hàng</p>
+                </div>
+                <div>
+                    <a href="{% url 'reports:delivery_person_list' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i> Back to List
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile & Stats -->
+    <div class="row mb-4">
+        <div class="col-lg-4">
+            <!-- Profile Card -->
+            <div class="card mb-3">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-person-circle"></i> Thông Tin Cá Nhân</h5>
+                </div>
+                <div class="card-body text-center">
+                    <div class="avatar-large mb-3">
+                        {{ delivery_person.user.get_full_name|first|upper }}
+                    </div>
+                    <h4>{{ delivery_person.user.get_full_name|default:delivery_person.user.username }}</h4>
+                    <p class="text-muted">@{{ delivery_person.user.username }}</p>
+                    
+                    {% if delivery_person.is_active %}
+                        <span class="badge bg-success mb-3">
+                            <i class="bi bi-check-circle"></i> Đang Hoạt Động
+                        </span>
+                    {% else %}
+                        <span class="badge bg-secondary mb-3">
+                            <i class="bi bi-x-circle"></i> Tạm Ngưng
+                        </span>
+                    {% endif %}
+
+                    <hr>
+
+                    <div class="text-start">
+                        <p class="mb-2">
+                            <i class="bi bi-phone text-primary"></i> 
+                            <strong>SĐT:</strong> {{ delivery_person.phone }}
+                        </p>
+                        <p class="mb-2">
+                            <i class="bi bi-envelope text-primary"></i> 
+                            <strong>Email:</strong> {{ delivery_person.user.email|default:"Chưa có" }}
+                        </p>
+                        <p class="mb-2">
+                            {% if delivery_person.vehicle_type == 'motorbike' %}
+                                <i class="bi bi-scooter text-primary"></i>
+                            {% elif delivery_person.vehicle_type == 'bicycle' %}
+                                <i class="bi bi-bicycle text-primary"></i>
+                            {% elif delivery_person.vehicle_type == 'car' %}
+                                <i class="bi bi-car-front text-primary"></i>
+                            {% elif delivery_person.vehicle_type == 'truck' %}
+                                <i class="bi bi-truck text-primary"></i>
+                            {% endif %}
+                            <strong>Phương tiện:</strong> {{ delivery_person.get_vehicle_type_display }}
+                        </p>
+                        {% if delivery_person.rating %}
+                        <p class="mb-0">
+                            <i class="bi bi-star-fill text-warning"></i> 
+                            <strong>Đánh giá:</strong> {{ delivery_person.rating|floatformat:1 }}/5.0
+                        </p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statistics Card -->
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="bi bi-graph-up"></i> Thống Kê</h5>
+                </div>
+                <div class="card-body">
+                    <div class="stat-item mb-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted">Tổng đơn hàng:</span>
+                            <strong class="h4 mb-0">{{ delivery_person.total_deliveries }}</strong>
+                        </div>
+                    </div>
+                    <div class="stat-item mb-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted">Giao thành công:</span>
+                            <strong class="h4 mb-0 text-success">{{ delivery_person.successful_deliveries }}</strong>
+                        </div>
+                    </div>
+                    <div class="stat-item mb-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted">Tỷ lệ thành công:</span>
+                            {% if delivery_person.total_deliveries > 0 %}
+                                <strong class="h4 mb-0 
+                                    {% if success_rate >= 90 %}text-success
+                                    {% elif success_rate >= 70 %}text-info
+                                    {% elif success_rate >= 50 %}text-warning
+                                    {% else %}text-danger{% endif %}">
+                                    {{ success_rate|floatformat:1 }}%
+                                </strong>
+                            {% else %}
+                                <strong class="text-muted">N/A</strong>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <h6 class="text-muted mb-3">Tháng Này</h6>
+                    <div class="stat-item mb-2">
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted">Đơn trong tháng:</span>
+                            <strong>{{ deliveries_this_month }}</strong>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted">Giao thành công:</span>
+                            <strong class="text-success">{{ successful_this_month }}</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <!-- Current Deliveries -->
+            <div class="card mb-4">
+                <div class="card-header bg-warning">
+                    <h5 class="mb-0">
+                        <i class="bi bi-clock-history"></i> Đơn Hàng Đang Giao
+                        <span class="badge bg-dark ms-2">{{ current_deliveries.count }}</span>
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if current_deliveries %}
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Đơn Hàng</th>
+                                    <th>Khách Hàng</th>
+                                    <th>Địa Chỉ</th>
+                                    <th>Trạng Thái</th>
+                                    <th>Dự Kiến Giao</th>
+                                    <th>Thao Tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for delivery in current_deliveries %}
+                                <tr class="{% if delivery.is_delayed %}table-danger{% endif %}">
+                                    <td>
+                                        <strong>#{{ delivery.order.order_number }}</strong>
+                                    </td>
+                                    <td>{{ delivery.order.user.get_full_name|truncatechars:20 }}</td>
+                                    <td><small>{{ delivery.delivery_address|truncatewords:4 }}</small></td>
+                                    <td>
+                                        {% if delivery.status == 'assigned' %}
+                                            <span class="badge bg-info">Đã phân công</span>
+                                        {% elif delivery.status == 'picked_up' %}
+                                            <span class="badge bg-primary">Đã lấy hàng</span>
+                                        {% elif delivery.status == 'in_transit' %}
+                                            <span class="badge bg-primary">Đang giao</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <small class="{% if delivery.is_delayed %}text-danger fw-bold{% endif %}">
+                                            {{ delivery.estimated_delivery_time|date:"M d, H:i" }}
+                                        </small>
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'reports:delivery_detail' delivery.id %}" 
+                                           class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-check-circle display-4 text-success"></i>
+                        <p class="text-muted mt-3">Không có đơn hàng đang giao</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Recent Deliveries -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-list-ul"></i> Lịch Sử Giao Hàng Gần Đây</h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_deliveries %}
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Đơn Hàng</th>
+                                    <th>Khách Hàng</th>
+                                    <th>Địa Chỉ</th>
+                                    <th>Trạng Thái</th>
+                                    <th>Ngày Tạo</th>
+                                    <th>Ngày Giao</th>
+                                    <th>Thao Tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for delivery in recent_deliveries %}
+                                <tr>
+                                    <td>#{{ delivery.id }}</td>
+                                    <td>
+                                        <strong>#{{ delivery.order.order_number }}</strong>
+                                    </td>
+                                    <td>{{ delivery.order.user.get_full_name|truncatechars:20 }}</td>
+                                    <td><small>{{ delivery.delivery_address|truncatewords:4 }}</small></td>
+                                    <td>
+                                        {% if delivery.status == 'pending' %}
+                                            <span class="badge bg-warning">Chờ</span>
+                                        {% elif delivery.status == 'assigned' %}
+                                            <span class="badge bg-info">Đã phân công</span>
+                                        {% elif delivery.status == 'picked_up' %}
+                                            <span class="badge bg-primary">Đã lấy hàng</span>
+                                        {% elif delivery.status == 'in_transit' %}
+                                            <span class="badge bg-primary">Đang giao</span>
+                                        {% elif delivery.status == 'delivered' %}
+                                            <span class="badge bg-success">Thành công</span>
+                                        {% elif delivery.status == 'failed' %}
+                                            <span class="badge bg-danger">Thất bại</span>
+                                        {% elif delivery.status == 'returned' %}
+                                            <span class="badge bg-secondary">Trả lại</span>
+                                        {% endif %}
+                                    </td>
+                                    <td><small>{{ delivery.created_at|date:"M d, H:i" }}</small></td>
+                                    <td>
+                                        {% if delivery.delivered_at %}
+                                            <small class="text-success">{{ delivery.delivered_at|date:"M d, H:i" }}</small>
+                                        {% else %}
+                                            <small class="text-muted">-</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'reports:delivery_detail' delivery.id %}" 
+                                           class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-inbox display-4 text-muted"></i>
+                        <p class="text-muted mt-3">Chưa có lịch sử giao hàng</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border-radius: 0.5rem;
+}
+
+.avatar-large {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 48px;
+    margin: 0 auto;
+}
+
+.stat-item {
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.table td {
+    vertical-align: middle;
+}
+</style>
+{% endblock %}
+

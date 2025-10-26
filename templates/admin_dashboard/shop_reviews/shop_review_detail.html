@@ -1,0 +1,283 @@
+{% extends 'admin_dashboard/base.html' %}
+
+{% block title %}Chi Tiết Đánh Giá{% endblock %}
+
+{% block page_title %}Chi Tiết Đánh Giá Cửa Hàng{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'reports:shop_review_list' %}" class="btn btn-sm btn-secondary shadow-sm">
+    <i class="fas fa-arrow-left fa-sm text-white-50"></i> Quay Lại
+</a>
+<a href="{% url 'reports:shop_review_delete' shop_review.pk %}" class="btn btn-sm btn-danger shadow-sm" onclick="return confirm('Bạn có chắc muốn xóa đánh giá này?')">
+    <i class="fas fa-trash fa-sm text-white-50"></i> Xóa
+</a>
+{% endblock %}
+
+{% block content %}
+
+<!-- Review Information -->
+<div class="row">
+    <div class="col-lg-8 mb-4">
+        <!-- Main Review Card -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-star"></i> Thông Tin Đánh Giá
+                </h6>
+                <div>
+                    {% if shop_review.is_approved %}
+                        <span class="badge badge-success">
+                            <i class="fas fa-check"></i> Đã duyệt
+                        </span>
+                    {% else %}
+                        <span class="badge badge-warning">
+                            <i class="fas fa-clock"></i> Chờ duyệt
+                        </span>
+                    {% endif %}
+                    
+                    {% if shop_review.is_featured %}
+                        <span class="badge badge-info">
+                            <i class="fas fa-star"></i> Nổi bật
+                        </span>
+                    {% endif %}
+                    
+                    {% if shop_review.is_verified_purchase %}
+                        <span class="badge badge-success">
+                            <i class="fas fa-check-circle"></i> Đã mua hàng
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- Rating -->
+                <div class="mb-4 text-center py-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 10px;">
+                    <div class="text-warning mb-2" style="font-size: 2rem;">
+                        {% for i in "12345" %}
+                            {% if forloop.counter <= shop_review.rating %}
+                                <i class="fas fa-star"></i>
+                            {% else %}
+                                <i class="far fa-star"></i>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    <h2 class="text-white font-weight-bold mb-0">{{ shop_review.rating }}/5</h2>
+                    <p class="text-white-50 mb-0">Điểm đánh giá</p>
+                </div>
+                
+                <!-- Title -->
+                <div class="mb-3">
+                    <h4 class="font-weight-bold text-gray-800">{{ shop_review.title }}</h4>
+                </div>
+                
+                <!-- Comment -->
+                <div class="mb-4">
+                    <div class="p-3 bg-light rounded">
+                        <p class="mb-0" style="white-space: pre-wrap;">{{ shop_review.comment }}</p>
+                    </div>
+                </div>
+                
+                <!-- Metadata -->
+                <div class="row text-center">
+                    <div class="col-md-4 mb-3">
+                        <div class="border rounded py-3">
+                            <i class="fas fa-calendar-alt text-primary fa-2x mb-2"></i>
+                            <div class="font-weight-bold">Ngày Đăng</div>
+                            <small class="text-muted">{{ shop_review.created_at|date:"d/m/Y H:i" }}</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="border rounded py-3">
+                            <i class="fas fa-sync-alt text-info fa-2x mb-2"></i>
+                            <div class="font-weight-bold">Cập Nhật</div>
+                            <small class="text-muted">{{ shop_review.updated_at|date:"d/m/Y H:i" }}</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="border rounded py-3">
+                            <i class="fas fa-user text-success fa-2x mb-2"></i>
+                            <div class="font-weight-bold">Người Dùng</div>
+                            <small class="text-muted">{{ shop_review.user.username }}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- User's Order History -->
+        {% if user_orders %}
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-success">
+                    <i class="fas fa-shopping-cart"></i> Lịch Sử Mua Hàng
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover">
+                        <thead>
+                            <tr>
+                                <th>Mã Đơn</th>
+                                <th>Ngày Đặt</th>
+                                <th>Trạng Thái</th>
+                                <th>Tổng Tiền</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for order in user_orders %}
+                            <tr>
+                                <td>
+                                    <a href="{% url 'reports:order_detail' order.pk %}">#{{ order.order_number }}</a>
+                                </td>
+                                <td>{{ order.created_at|date:"d/m/Y" }}</td>
+                                <td>
+                                    {% if order.status == 'delivered' %}
+                                        <span class="badge badge-success">Đã giao</span>
+                                    {% elif order.status == 'completed' %}
+                                        <span class="badge badge-success">Hoàn thành</span>
+                                    {% endif %}
+                                </td>
+                                <td class="font-weight-bold text-success">{{ order.total_amount|floatformat:0 }}đ</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                {% if has_purchased %}
+                <div class="alert alert-success mb-0 mt-3">
+                    <i class="fas fa-check-circle"></i> Người dùng này đã có lịch sử mua hàng
+                </div>
+                {% else %}
+                <div class="alert alert-warning mb-0 mt-3">
+                    <i class="fas fa-exclamation-triangle"></i> Người dùng chưa có đơn hàng hoàn thành
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Sidebar -->
+    <div class="col-lg-4 mb-4">
+        <!-- User Info Card -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-user"></i> Thông Tin Người Dùng
+                </h6>
+            </div>
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    <i class="fas fa-user-circle fa-5x text-gray-400"></i>
+                </div>
+                <h5 class="font-weight-bold">{{ shop_review.user.get_full_name|default:shop_review.user.username }}</h5>
+                <p class="text-muted mb-1">
+                    <i class="fas fa-envelope"></i> {{ shop_review.user.email }}
+                </p>
+                {% if shop_review.user.phone %}
+                <p class="text-muted mb-3">
+                    <i class="fas fa-phone"></i> {{ shop_review.user.phone }}
+                </p>
+                {% endif %}
+                
+                <div class="border-top pt-3 mt-3">
+                    <p class="mb-1"><small class="text-muted">Đăng ký:</small></p>
+                    <p class="font-weight-bold">{{ shop_review.user.date_joined|date:"d/m/Y" }}</p>
+                </div>
+                
+                <a href="{% url 'reports:customer_detail' shop_review.user.pk %}" class="btn btn-primary btn-sm btn-block">
+                    <i class="fas fa-eye"></i> Xem Hồ Sơ
+                </a>
+            </div>
+        </div>
+        
+        <!-- Actions Card -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-success">
+                    <i class="fas fa-cogs"></i> Thao Tác
+                </h6>
+            </div>
+            <div class="card-body">
+                <!-- Toggle Approval -->
+                <form method="post" action="{% url 'reports:shop_review_toggle_approval' shop_review.pk %}" class="mb-2">
+                    {% csrf_token %}
+                    {% if shop_review.is_approved %}
+                    <button type="submit" class="btn btn-warning btn-block">
+                        <i class="fas fa-eye-slash"></i> Ẩn Đánh Giá
+                    </button>
+                    {% else %}
+                    <button type="submit" class="btn btn-success btn-block">
+                        <i class="fas fa-check"></i> Duyệt Đánh Giá
+                    </button>
+                    {% endif %}
+                </form>
+                
+                <!-- Toggle Featured -->
+                <form method="post" action="{% url 'reports:shop_review_toggle_featured' shop_review.pk %}" class="mb-2">
+                    {% csrf_token %}
+                    {% if shop_review.is_featured %}
+                    <button type="submit" class="btn btn-secondary btn-block">
+                        <i class="fas fa-star-half-alt"></i> Bỏ Nổi Bật
+                    </button>
+                    {% else %}
+                    <button type="submit" class="btn btn-info btn-block">
+                        <i class="fas fa-star"></i> Đặt Nổi Bật
+                    </button>
+                    {% endif %}
+                </form>
+                
+                <!-- Toggle Verified Purchase -->
+                <form method="post" action="{% url 'reports:shop_review_toggle_verified' shop_review.pk %}" class="mb-0">
+                    {% csrf_token %}
+                    {% if shop_review.is_verified_purchase %}
+                    <button type="submit" class="btn btn-secondary btn-block">
+                        <i class="fas fa-times-circle"></i> Bỏ Xác Nhận Mua
+                    </button>
+                    {% else %}
+                    <button type="submit" class="btn btn-success btn-block">
+                        <i class="fas fa-check-circle"></i> Xác Nhận Đã Mua
+                    </button>
+                    {% endif %}
+                </form>
+            </div>
+        </div>
+        
+        <!-- Other Reviews from This User -->
+        {% if other_reviews %}
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-info">
+                    <i class="fas fa-comments"></i> Đánh Giá Khác
+                </h6>
+            </div>
+            <div class="card-body">
+                {% for review in other_reviews %}
+                <div class="mb-3 pb-3 {% if not forloop.last %}border-bottom{% endif %}">
+                    <div class="d-flex justify-content-between mb-1">
+                        <div class="text-warning">
+                            {% for i in "12345" %}
+                                {% if forloop.counter <= review.rating %}
+                                    <i class="fas fa-star"></i>
+                                {% else %}
+                                    <i class="far fa-star"></i>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                        <small class="text-muted">{{ review.created_at|date:"d/m/Y" }}</small>
+                    </div>
+                    <strong>{{ review.title }}</strong>
+                    <p class="mb-0 mt-1"><small class="text-muted">{{ review.comment|truncatewords:10 }}</small></p>
+                    <a href="{% url 'reports:shop_review_detail' review.pk %}" class="btn btn-sm btn-outline-info mt-2">
+                        <i class="fas fa-eye"></i> Xem
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}
+

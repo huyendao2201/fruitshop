@@ -1,0 +1,177 @@
+{% extends 'admin_dashboard/base.html' %}
+{% load static %}
+
+{% block title %}Chi Tiết Đăng Ký - {{ newsletter.email }}{% endblock %}
+
+{% block page_title %}Chi Tiết Đăng Ký Nhận Tin{% endblock %}
+
+{% block page_actions %}
+<div class="d-flex align-items-center">
+    <a href="{% url 'reports:newsletter_list' %}" class="btn btn-secondary btn-sm mr-2">
+        <i class="fas fa-arrow-left"></i> Quay Lại
+    </a>
+    
+    <form method="post" action="{% url 'reports:newsletter_toggle_active' newsletter.pk %}" 
+          style="display: inline;" class="mr-2" onsubmit="return confirm('Bạn có chắc chắn muốn thay đổi trạng thái?');">
+        {% csrf_token %}
+        {% if newsletter.is_active %}
+            <button type="submit" class="btn btn-warning btn-sm">
+                <i class="fas fa-ban"></i> Vô Hiệu Hóa
+            </button>
+        {% else %}
+            <button type="submit" class="btn btn-success btn-sm">
+                <i class="fas fa-check"></i> Kích Hoạt Lại
+            </button>
+        {% endif %}
+    </form>
+    
+    <form method="post" action="{% url 'reports:newsletter_delete' newsletter.pk %}" 
+          style="display: inline;" onsubmit="return confirm('Bạn có chắc chắn muốn xóa đăng ký này?');">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger btn-sm">
+            <i class="fas fa-trash"></i> Xóa
+        </button>
+    </form>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Main Info -->
+    <div class="col-lg-8">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-envelope"></i> Thông Tin Đăng Ký
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <strong><i class="fas fa-hashtag"></i> ID:</strong>
+                    </div>
+                    <div class="col-md-8">
+                        {{ newsletter.id }}
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <strong><i class="fas fa-envelope"></i> Email:</strong>
+                    </div>
+                    <div class="col-md-8">
+                        <a href="mailto:{{ newsletter.email }}">{{ newsletter.email }}</a>
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <strong><i class="fas fa-info-circle"></i> Trạng Thái:</strong>
+                    </div>
+                    <div class="col-md-8">
+                        {% if newsletter.is_active %}
+                            <span class="badge badge-success badge-lg">
+                                <i class="fas fa-check-circle"></i> Đang Hoạt Động
+                            </span>
+                        {% else %}
+                            <span class="badge badge-danger badge-lg">
+                                <i class="fas fa-ban"></i> Đã Hủy
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <strong><i class="fas fa-calendar-plus"></i> Ngày Đăng Ký:</strong>
+                    </div>
+                    <div class="col-md-8">
+                        {{ newsletter.subscribed_at|date:"d/m/Y H:i:s" }}
+                        <br>
+                        <small class="text-muted">
+                            ({{ newsletter.subscribed_at|timesince }} trước)
+                        </small>
+                    </div>
+                </div>
+                
+                {% if newsletter.unsubscribed_at %}
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <strong><i class="fas fa-calendar-times"></i> Ngày Hủy:</strong>
+                    </div>
+                    <div class="col-md-8">
+                        {{ newsletter.unsubscribed_at|date:"d/m/Y H:i:s" }}
+                        <br>
+                        <small class="text-muted">
+                            ({{ newsletter.unsubscribed_at|timesince }} trước)
+                        </small>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Actions & Stats -->
+    <div class="col-lg-4">
+        <!-- Quick Actions -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-bolt"></i> Thao Tác Nhanh
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="list-group list-group-flush">
+                    <form method="post" action="{% url 'reports:newsletter_toggle_active' newsletter.pk %}" 
+                          onsubmit="return confirm('Bạn có chắc chắn?');">
+                        {% csrf_token %}
+                        {% if newsletter.is_active %}
+                            <button type="submit" class="list-group-item list-group-item-action text-warning">
+                                <i class="fas fa-ban"></i> Vô Hiệu Hóa
+                            </button>
+                        {% else %}
+                            <button type="submit" class="list-group-item list-group-item-action text-success">
+                                <i class="fas fa-check"></i> Kích Hoạt Lại
+                            </button>
+                        {% endif %}
+                    </form>
+                    
+                    <a href="mailto:{{ newsletter.email }}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-paper-plane"></i> Gửi Email
+                    </a>
+                    
+                    <form method="post" action="{% url 'reports:newsletter_delete' newsletter.pk %}" 
+                          onsubmit="return confirm('Bạn có chắc chắn muốn xóa đăng ký này? Hành động này không thể hoàn tác!');">
+                        {% csrf_token %}
+                        <button type="submit" class="list-group-item list-group-item-action text-danger">
+                            <i class="fas fa-trash"></i> Xóa Đăng Ký
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Info Box -->
+        <div class="card shadow mb-4 border-left-info">
+            <div class="card-body">
+                <h6 class="font-weight-bold text-info mb-3">
+                    <i class="fas fa-info-circle"></i> Thông Tin
+                </h6>
+                <p class="small text-muted mb-2">
+                    <i class="fas fa-check"></i> Đăng ký này có thể được sử dụng để gửi email marketing, thông báo khuyến mãi.
+                </p>
+                <p class="small text-muted mb-2">
+                    <i class="fas fa-exclamation-triangle"></i> Vô hiệu hóa đăng ký sẽ ngăn hệ thống gửi email cho địa chỉ này.
+                </p>
+                <p class="small text-muted mb-0">
+                    <i class="fas fa-trash"></i> Xóa đăng ký sẽ xóa vĩnh viễn khỏi hệ thống.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

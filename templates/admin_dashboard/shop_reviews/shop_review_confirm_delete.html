@@ -1,0 +1,105 @@
+{% extends 'admin_dashboard/base.html' %}
+
+{% block title %}Xóa Đánh Giá{% endblock %}
+
+{% block page_title %}Xác Nhận Xóa Đánh Giá{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow">
+            <div class="card-header bg-danger text-white py-3">
+                <h6 class="m-0 font-weight-bold">
+                    <i class="fas fa-exclamation-triangle"></i> Cảnh Báo: Xóa Đánh Giá
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <strong>Chú ý:</strong> Bạn sắp xóa đánh giá này. Hành động này không thể hoàn tác!
+                </div>
+                
+                <!-- Review Preview -->
+                <div class="border rounded p-4 mb-4 bg-light">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>Người dùng:</strong>
+                            <p class="mb-0">{{ shop_review.user.get_full_name|default:shop_review.user.username }}</p>
+                            <small class="text-muted">{{ shop_review.user.email }}</small>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Đánh giá:</strong>
+                            <div class="text-warning">
+                                {% for i in "12345" %}
+                                    {% if forloop.counter <= shop_review.rating %}
+                                        <i class="fas fa-star"></i>
+                                    {% else %}
+                                        <i class="far fa-star"></i>
+                                    {% endif %}
+                                {% endfor %}
+                                <span class="text-dark ml-2">{{ shop_review.rating }}/5</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <strong>Tiêu đề:</strong>
+                        <p class="mb-0">{{ shop_review.title }}</p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <strong>Nội dung:</strong>
+                        <p class="mb-0">{{ shop_review.comment }}</p>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <strong>Ngày đăng:</strong>
+                            <p class="mb-0">{{ shop_review.created_at|date:"d/m/Y H:i" }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Trạng thái:</strong>
+                            <p class="mb-0">
+                                {% if shop_review.is_approved %}
+                                    <span class="badge badge-success">Đã duyệt</span>
+                                {% else %}
+                                    <span class="badge badge-warning">Chờ duyệt</span>
+                                {% endif %}
+                                
+                                {% if shop_review.is_featured %}
+                                    <span class="badge badge-info">Nổi bật</span>
+                                {% endif %}
+                                
+                                {% if shop_review.is_verified_purchase %}
+                                    <span class="badge badge-success">Đã mua</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="alert alert-warning">
+                    <i class="fas fa-info-circle"></i>
+                    <strong>Lưu ý:</strong> Nếu bạn chỉ muốn tạm ẩn đánh giá này, hãy sử dụng chức năng "Ẩn đánh giá" thay vì xóa.
+                </div>
+                
+                <!-- Confirm Form -->
+                <form method="post" class="mt-4">
+                    {% csrf_token %}
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'reports:shop_review_detail' shop_review.pk %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Hủy Bỏ
+                        </a>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash"></i> Xác Nhận Xóa
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+

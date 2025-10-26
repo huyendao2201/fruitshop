@@ -1,0 +1,268 @@
+{% extends 'admin_dashboard/base.html' %}
+{% load static %}
+
+{% block title %}Delivery Management - Fresh Fruit Shop{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2><i class="bi bi-truck"></i> Quản Lý Giao Hàng</h2>
+                    <p class="text-muted">Quản lý và theo dõi tất cả các đơn giao hàng</p>
+                </div>
+                <div>
+                    <a href="{% url 'reports:dashboard' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-speedometer2"></i> Dashboard
+                    </a>
+                    <a href="{% url 'reports:delivery_person_list' %}" class="btn btn-outline-primary">
+                        <i class="bi bi-person-badge"></i> Nhân Viên Giao Hàng
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-lg-2 col-md-4 mb-3">
+            <div class="card text-center border-primary">
+                <div class="card-body">
+                    <h4 class="text-primary mb-0">{{ total_count }}</h4>
+                    <small class="text-muted">Tổng</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-2 col-md-4 mb-3">
+            <div class="card text-center border-warning">
+                <div class="card-body">
+                    <h4 class="text-warning mb-0">{{ pending_count }}</h4>
+                    <small class="text-muted">Chờ Phân Công</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-2 col-md-4 mb-3">
+            <div class="card text-center border-info">
+                <div class="card-body">
+                    <h4 class="text-info mb-0">{{ active_count }}</h4>
+                    <small class="text-muted">Đang Giao</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-2 col-md-4 mb-3">
+            <div class="card text-center border-success">
+                <div class="card-body">
+                    <h4 class="text-success mb-0">{{ completed_count }}</h4>
+                    <small class="text-muted">Hoàn Thành</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-2 col-md-4 mb-3">
+            <div class="card text-center border-danger">
+                <div class="card-body">
+                    <h4 class="text-danger mb-0">{{ failed_count }}</h4>
+                    <small class="text-muted">Thất Bại</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Tìm kiếm</label>
+                            <input type="text" name="search" class="form-control" placeholder="Order #, Customer..." value="{{ request.GET.search }}">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Trạng thái</label>
+                            <select name="status" class="form-select">
+                                <option value="">Tất cả</option>
+                                {% for status, label in status_choices %}
+                                <option value="{{ status }}" {% if request.GET.status == status %}selected{% endif %}>
+                                    {{ label }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Nhân viên</label>
+                            <select name="delivery_person" class="form-select">
+                                <option value="">Tất cả</option>
+                                {% for person in delivery_persons %}
+                                <option value="{{ person.id }}" {% if request.GET.delivery_person|add:0 == person.id %}selected{% endif %}>
+                                    {{ person.user.get_full_name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Từ ngày</label>
+                            <input type="date" name="start_date" class="form-control" value="{{ request.GET.start_date }}">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Đến ngày</label>
+                            <input type="date" name="end_date" class="form-control" value="{{ request.GET.end_date }}">
+                        </div>
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-search"></i> Lọc
+                            </button>
+                            <a href="{% url 'reports:delivery_list' %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-circle"></i> Reset
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delivery List -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    {% if deliveries %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Đơn Hàng</th>
+                                    <th>Khách Hàng</th>
+                                    <th>Người Nhận</th>
+                                    <th>Địa Chỉ Giao</th>
+                                    <th>Nhân Viên</th>
+                                    <th>Trạng Thái</th>
+                                    <th>Dự Kiến Giao</th>
+                                    <th>Ngày Tạo</th>
+                                    <th>Thao Tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for delivery in deliveries %}
+                                <tr class="{% if delivery.status == 'pending' %}table-warning{% elif delivery.is_delayed %}table-danger{% endif %}">
+                                    <td>#{{ delivery.id }}</td>
+                                    <td>
+                                        <a href="{% url 'reports:order_detail' delivery.order.id %}" class="text-decoration-none">
+                                            <strong>#{{ delivery.order.order_number }}</strong>
+                                        </a>
+                                    </td>
+                                    <td>{{ delivery.order.user.get_full_name|default:delivery.order.user.username }}</td>
+                                    <td>
+                                        <div>{{ delivery.recipient_name }}</div>
+                                        <small class="text-muted">{{ delivery.recipient_phone }}</small>
+                                    </td>
+                                    <td><small>{{ delivery.delivery_address|truncatewords:6 }}</small></td>
+                                    <td>
+                                        {% if delivery.delivery_person %}
+                                            <span class="badge bg-info">
+                                                {{ delivery.delivery_person.user.get_full_name|truncatechars:15 }}
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-warning">Chưa phân công</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if delivery.status == 'pending' %}
+                                            <span class="badge bg-warning">{{ delivery.get_status_display }}</span>
+                                        {% elif delivery.status == 'assigned' %}
+                                            <span class="badge bg-info">{{ delivery.get_status_display }}</span>
+                                        {% elif delivery.status == 'picked_up' %}
+                                            <span class="badge bg-primary">{{ delivery.get_status_display }}</span>
+                                        {% elif delivery.status == 'in_transit' %}
+                                            <span class="badge bg-primary">{{ delivery.get_status_display }}</span>
+                                        {% elif delivery.status == 'delivered' %}
+                                            <span class="badge bg-success">{{ delivery.get_status_display }}</span>
+                                        {% elif delivery.status == 'failed' %}
+                                            <span class="badge bg-danger">{{ delivery.get_status_display }}</span>
+                                        {% elif delivery.status == 'returned' %}
+                                            <span class="badge bg-secondary">{{ delivery.get_status_display }}</span>
+                                        {% endif %}
+                                        {% if delivery.is_delayed %}
+                                            <br><span class="badge bg-danger mt-1"><i class="bi bi-clock"></i> Trễ</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if delivery.estimated_delivery_time %}
+                                            <small>{{ delivery.estimated_delivery_time|date:"M d, H:i" }}</small>
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td><small>{{ delivery.created_at|date:"M d, H:i" }}</small></td>
+                                    <td>
+                                        <a href="{% url 'reports:delivery_detail' delivery.id %}" class="btn btn-sm btn-outline-primary" title="Chi tiết">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    {% if is_paginated %}
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination justify-content-center">
+                            {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page=1{{ request.GET.urlencode|slice:'1:' }}">First</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{{ request.GET.urlencode|slice:'1:' }}">Previous</a>
+                            </li>
+                            {% endif %}
+
+                            <li class="page-item active">
+                                <span class="page-link">
+                                    Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                                </span>
+                            </li>
+
+                            {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}{{ request.GET.urlencode|slice:'1:' }}">Next</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{{ request.GET.urlencode|slice:'1:' }}">Last</a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-truck display-1 text-muted"></i>
+                        <p class="text-muted mt-3">Không tìm thấy delivery nào</p>
+                        <a href="{% url 'reports:delivery_list' %}" class="btn btn-outline-primary">Reset Filters</a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border-radius: 0.5rem;
+}
+
+.table td {
+    vertical-align: middle;
+}
+</style>
+{% endblock %}
+
+
+
+

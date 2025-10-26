@@ -1,0 +1,264 @@
+{% extends 'admin_dashboard/base.html' %}
+
+{% block title %}Chi Tiết Sản Phẩm - {{ product.name }}{% endblock %}
+
+{% block page_title %}Chi Tiết Sản Phẩm{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'reports:product_list' %}" class="btn btn-sm btn-secondary shadow-sm mr-2">
+    <i class="fas fa-arrow-left fa-sm"></i> Quay Lại
+</a>
+<a href="{% url 'reports:product_edit' product.id %}" class="btn btn-sm btn-warning shadow-sm mr-2">
+    <i class="fas fa-edit fa-sm"></i> Chỉnh Sửa
+</a>
+<a href="{% url 'reports:product_images' product.id %}" class="btn btn-sm btn-success shadow-sm">
+    <i class="fas fa-images fa-sm"></i> Quản Lý Ảnh
+</a>
+{% endblock %}
+
+{% block content %}
+
+<div class="row">
+    <!-- Left Column -->
+    <div class="col-lg-8">
+        <!-- Product Info -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Thông Tin Sản Phẩm</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 text-center mb-3">
+                        {% if product.get_primary_image %}
+                        <img src="{{ product.get_primary_image.url }}" alt="{{ product.name }}" class="img-fluid rounded" style="max-height: 300px;">
+                        {% else %}
+                        <div style="width: 100%; height: 300px; background: #eee; display: flex; align-items: center; justify-content: center; border-radius: 10px;">
+                            <i class="fas fa-image fa-5x text-gray-400"></i>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-8">
+                        <h3 class="font-weight-bold mb-3">{{ product.name }}</h3>
+                        
+                        <div class="mb-3">
+                            <span class="badge badge-info">{{ product.category.name|default:"Chưa phân loại" }}</span>
+                            {% if product.is_active %}
+                            <span class="badge badge-success">Đang hoạt động</span>
+                            {% else %}
+                            <span class="badge badge-secondary">Ngừng hoạt động</span>
+                            {% endif %}
+                            
+                            {% if product.stock == 0 %}
+                            <span class="badge badge-danger">Hết hàng</span>
+                            {% elif product.stock <= 10 %}
+                            <span class="badge badge-warning">Tồn kho thấp</span>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-6">
+                                <p class="mb-2"><strong>Giá:</strong> <span class="text-primary h4">{{ product.price|floatformat:0 }}đ</span></p>
+                                <p class="mb-2"><strong>Tồn kho:</strong> {{ product.stock }}</p>
+                                <p class="mb-2"><strong>Trọng lượng:</strong> {{ product.weight|default:"—" }} kg</p>
+                            </div>
+                            <div class="col-6">
+                                <p class="mb-2"><strong>ID:</strong> {{ product.id }}</p>
+                                <p class="mb-2"><strong>Tạo lúc:</strong> {{ product.created_at|date:"d/m/Y H:i" }}</p>
+                                <p class="mb-2"><strong>Cập nhật:</strong> {{ product.updated_at|date:"d/m/Y H:i" }}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <h6 class="font-weight-bold">Mô Tả:</h6>
+                            <p class="text-muted">{{ product.description|default:"Chưa có mô tả" }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sales History -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Lịch Sử Bán Hàng</h6>
+            </div>
+            <div class="card-body">
+                {% if order_items %}
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover">
+                        <thead>
+                            <tr>
+                                <th>Mã Đơn</th>
+                                <th>Khách Hàng</th>
+                                <th>Ngày</th>
+                                <th>Số Lượng</th>
+                                <th>Giá</th>
+                                <th>Thành Tiền</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in order_items %}
+                            <tr>
+                                <td><a href="{% url 'reports:order_detail' item.order.id %}" class="font-weight-bold">#{{ item.order.order_number }}</a></td>
+                                <td>{{ item.order.user.full_name|default:item.order.user.username }}</td>
+                                <td>{{ item.order.created_at|date:"d/m/Y" }}</td>
+                                <td>{{ item.quantity }}</td>
+                                <td>{{ item.price|floatformat:0 }}đ</td>
+                                <td class="font-weight-bold">{{ item.get_total|floatformat:0 }}đ</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-center text-muted py-4">
+                    <i class="fas fa-inbox fa-3x mb-3 d-block"></i>
+                    Chưa có đơn hàng nào
+                </p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Reviews -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Đánh Giá Của Khách Hàng</h6>
+            </div>
+            <div class="card-body">
+                {% if reviews %}
+                {% for review in reviews %}
+                <div class="media mb-3 pb-3 {% if not forloop.last %}border-bottom{% endif %}">
+                    <div class="mr-3">
+                        <i class="fas fa-user-circle fa-3x text-gray-400"></i>
+                    </div>
+                    <div class="media-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                                <h6 class="mb-0 font-weight-bold">{{ review.user.full_name|default:review.user.username }}</h6>
+                                <div class="text-warning">
+                                    {% for i in "12345" %}
+                                    {% if forloop.counter <= review.rating %}
+                                    <i class="fas fa-star"></i>
+                                    {% else %}
+                                    <i class="far fa-star"></i>
+                                    {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <small class="text-muted">{{ review.created_at|date:"d/m/Y" }}</small>
+                        </div>
+                        <p class="mb-0">{{ review.comment }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+                {% else %}
+                <p class="text-center text-muted py-4">
+                    <i class="fas fa-inbox fa-3x mb-3 d-block"></i>
+                    Chưa có đánh giá nào
+                </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Right Column -->
+    <div class="col-lg-4">
+        <!-- Statistics -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Thống Kê</h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="font-weight-bold">Đã Bán:</span>
+                        <span class="h5 mb-0 text-primary">{{ total_sold }}</span>
+                    </div>
+                    <div class="progress">
+                        <div class="progress-bar bg-primary" role="progressbar" style="width: 100%"></div>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="font-weight-bold">Doanh Thu:</span>
+                        <span class="h5 mb-0 text-success">{{ total_revenue|floatformat:0 }}đ</span>
+                    </div>
+                    <div class="progress">
+                        <div class="progress-bar bg-success" role="progressbar" style="width: 100%"></div>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="font-weight-bold">Đánh Giá:</span>
+                        <span class="h5 mb-0 text-info">{{ reviews.count }}</span>
+                    </div>
+                    <div class="progress">
+                        <div class="progress-bar bg-info" role="progressbar" style="width: 100%"></div>
+                    </div>
+                </div>
+                
+                <div class="mb-0">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="font-weight-bold">Điểm TB:</span>
+                        <span class="h5 mb-0 text-warning">
+                            {% if product.average_rating %}
+                            {{ product.average_rating|floatformat:1 }} <i class="fas fa-star"></i>
+                            {% else %}
+                            Chưa có <i class="fas fa-star"></i>
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="progress">
+                        <div class="progress-bar bg-warning" role="progressbar" style="width: {% if product.average_rating %}{{ product.average_rating|floatformat:0 }}0%{% else %}0%{% endif %}"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Images -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Hình Ảnh</h6>
+            </div>
+            <div class="card-body">
+                {% if product.images.all %}
+                <div class="row">
+                    {% for image in product.images.all %}
+                    <div class="col-6 mb-3">
+                        <img src="{{ image.image.url }}" alt="{{ product.name }}" class="img-fluid rounded">
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-center text-muted py-4">
+                    <i class="fas fa-image fa-3x mb-3 d-block"></i>
+                    Chưa có hình ảnh
+                </p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Actions -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-danger">Thao Tác</h6>
+            </div>
+            <div class="card-body">
+                <a href="{% url 'reports:product_edit' product.id %}" class="btn btn-warning btn-block">
+                    <i class="fas fa-edit"></i> Chỉnh Sửa
+                </a>
+                <a href="{% url 'reports:product_delete' product.id %}" class="btn btn-danger btn-block" onclick="return confirm('Bạn có chắc muốn xóa sản phẩm này?')">
+                    <i class="fas fa-trash"></i> Xóa Sản Phẩm
+                </a>
+                <a href="{% url 'products:product_detail' product.id %}" class="btn btn-info btn-block" target="_blank">
+                    <i class="fas fa-external-link-alt"></i> Xem Trên Website
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+

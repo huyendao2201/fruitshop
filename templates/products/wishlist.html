@@ -1,0 +1,559 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load product_tags %}
+
+{% block title %}Danh Sách Yêu Thích - Fresh Berry{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <!-- Page Header -->
+    <div class="page-header mb-4">
+        <h1 class="page-title">
+            <i class="bi bi-heart-fill text-danger"></i>
+            Danh Sách Yêu Thích
+        </h1>
+        <p class="text-muted">Các sản phẩm bạn đã lưu</p>
+    </div>
+
+    {% if wishlist_items %}
+    <div class="row g-4">
+        {% for item in wishlist_items %}
+        <div class="col-lg-6">
+            <div class="product-card">
+                <!-- Product Image -->
+                <div class="product-image">
+                    <a href="{% url 'products:product_detail' item.product.slug %}">
+                        {% if item.product.image %}
+                            <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" loading="lazy">
+                        {% else %}
+                            <img src="{% static 'images/no-image.jpg' %}" alt="{{ item.product.name }}">
+                        {% endif %}
+                    </a>
+                    
+                    <!-- Quick Actions -->
+                    <div class="product-actions-overlay">
+                        <button class="quick-action-btn remove-from-wishlist" 
+                                data-product-slug="{{ item.product.slug }}"
+                                data-wishlist-url="{% url 'products:toggle_wishlist' item.product.slug %}"
+                                title="Xóa khỏi yêu thích">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                        <a href="{% url 'products:product_detail' item.product.slug %}" 
+                           class="quick-action-btn" 
+                           title="Xem chi tiết">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                    </div>
+
+                    <!-- Badges -->
+                    {% if item.product.discount_percentage > 0 %}
+                    <span class="product-badge badge-sale">-{{ item.product.discount_percentage }}%</span>
+                    {% endif %}
+                    
+                    {% if not item.product.is_in_stock %}
+                    <span class="product-badge badge-out-of-stock">Hết hàng</span>
+                    {% elif item.product.is_new %}
+                    <span class="product-badge badge-new">Mới</span>
+                    {% endif %}
+                </div>
+
+                <!-- Product Info -->
+                <div class="product-body">
+                    <div class="product-category">{{ item.product.category.name }}</div>
+                    <h3 class="product-title">
+                        <a href="{% url 'products:product_detail' item.product.slug %}">{{ item.product.name }}</a>
+                    </h3>
+                    
+                    <!-- Price -->
+                    <div class="product-price-wrapper">
+                        {% if item.product.discount_price %}
+                            <span class="product-price-old">{{ item.product.price|vnd }}</span>
+                            <span class="product-price">{{ item.product.discount_price|vnd }}</span>
+                        {% else %}
+                            <span class="product-price">{{ item.product.price|vnd }}</span>
+                        {% endif %}
+                    </div>
+
+                    <!-- Rating -->
+                    {% if item.product.average_rating > 0 %}
+                    <div class="product-rating">
+                        <div class="stars">
+                            {% for i in "12345" %}
+                                {% if forloop.counter <= item.product.average_rating %}
+                                    <i class="bi bi-star-fill"></i>
+                                {% elif forloop.counter|add:"-0.5" <= item.product.average_rating %}
+                                    <i class="bi bi-star-half"></i>
+                                {% else %}
+                                    <i class="bi bi-star"></i>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                        <span class="rating-count">({{ item.product.review_count }})</span>
+                    </div>
+                    {% endif %}
+
+                    <!-- Add to Cart -->
+                    <div class="product-actions">
+                        {% if item.product.is_in_stock %}
+                        <form method="post" action="{% url 'orders:add_to_cart' item.product.pk %}" class="w-100">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-add-cart w-100">
+                                <i class="bi bi-cart-plus"></i>
+                                Thêm vào giỏ
+                            </button>
+                        </form>
+                        {% else %}
+                        <button class="btn btn-out-of-stock w-100" disabled>
+                            <i class="bi bi-x-circle"></i>
+                            Hết hàng
+                        </button>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Added Date -->
+                    <div class="wishlist-date mt-2">
+                        <small class="text-muted">
+                            <i class="bi bi-clock"></i>
+                            Thêm {{ item.created_at|timesince }} trước
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <nav class="pagination-wrapper mt-5">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page=1">
+                    <i class="bi bi-chevron-double-left"></i>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">
+                    <i class="bi bi-chevron-left"></i>
+                </a>
+            </li>
+            {% endif %}
+
+            {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                <li class="page-item active">
+                    <span class="page-link">{{ num }}</span>
+                </li>
+                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                </li>
+                {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}">
+                    <i class="bi bi-chevron-right"></i>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">
+                    <i class="bi bi-chevron-double-right"></i>
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+
+    {% else %}
+    <!-- Empty State -->
+    <div class="empty-state text-center py-5">
+        <div class="empty-icon mb-4">
+            <i class="bi bi-heart" style="font-size: 5rem; color: #ddd;"></i>
+        </div>
+        <h3 class="mb-3">Danh sách yêu thích trống</h3>
+        <p class="text-muted mb-4">Bạn chưa thêm sản phẩm nào vào danh sách yêu thích</p>
+        <a href="{% url 'products:product_list' %}" class="btn btn-primary">
+            <i class="bi bi-shop"></i>
+            Khám phá sản phẩm
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Remove from wishlist
+document.addEventListener('DOMContentLoaded', function() {
+    const removeButtons = document.querySelectorAll('.remove-from-wishlist');
+    
+    removeButtons.forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            const url = this.getAttribute('data-wishlist-url');
+            const productCard = this.closest('.product-card').parentElement;
+            
+            // Get CSRF token
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+            if (!csrfToken) {
+                console.error('CSRF token not found');
+                return;
+            }
+            
+            // Confirm removal
+            if (!confirm('Bạn có chắc muốn xóa sản phẩm này khỏi danh sách yêu thích?')) {
+                return;
+            }
+            
+            // Send AJAX request
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken.value,
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                credentials: 'same-origin'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Fade out and remove card
+                    productCard.style.transition = 'opacity 0.3s ease-out';
+                    productCard.style.opacity = '0';
+                    
+                    setTimeout(() => {
+                        productCard.remove();
+                        
+                        // Check if wishlist is empty
+                        const remainingItems = document.querySelectorAll('.product-card');
+                        if (remainingItems.length === 0) {
+                            location.reload(); // Reload to show empty state
+                        }
+                    }, 300);
+                    
+                    showToast('Đã xóa khỏi danh sách yêu thích', 'success');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Có lỗi xảy ra. Vui lòng thử lại!');
+            });
+        });
+    });
+});
+
+// Toast function
+function showToast(message, type = 'info') {
+    const existingToast = document.querySelector('.custom-toast');
+    if (existingToast) {
+        existingToast.remove();
+    }
+    
+    const toast = document.createElement('div');
+    toast.className = `custom-toast toast-${type}`;
+    
+    let icon = '<i class="bi bi-info-circle"></i>';
+    if (type === 'success') icon = '<i class="bi bi-check-circle"></i>';
+    if (type === 'error') icon = '<i class="bi bi-x-circle"></i>';
+    
+    toast.innerHTML = `
+        <div class="toast-icon">${icon}</div>
+        <div class="toast-message">${message}</div>
+    `;
+    
+    Object.assign(toast.style, {
+        position: 'fixed',
+        bottom: '20px',
+        right: '20px',
+        background: 'white',
+        padding: '1rem 1.5rem',
+        borderRadius: '12px',
+        boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '0.75rem',
+        zIndex: '9999',
+        animation: 'slideInRight 0.3s ease-out',
+        minWidth: '250px'
+    });
+    
+    const colors = {
+        success: '#28a745',
+        error: '#dc3545',
+        info: '#17a2b8'
+    };
+    toast.style.borderLeft = `4px solid ${colors[type] || colors.info}`;
+    
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.style.animation = 'slideOutRight 0.3s ease-in';
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+</script>
+
+<style>
+@keyframes slideInRight {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes slideOutRight {
+    from { transform: translateX(0); opacity: 1; }
+    to { transform: translateX(100%); opacity: 0; }
+}
+
+.product-card {
+    background: white;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: row;
+}
+
+.product-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+}
+
+.product-image {
+    position: relative;
+    width: 40%;
+    min-height: 200px;
+    overflow: hidden;
+    background: #f8f9fa;
+    flex-shrink: 0;
+}
+
+.product-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.product-card:hover .product-image img {
+    transform: scale(1.05);
+}
+
+.product-actions-overlay {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    opacity: 0;
+    transform: translateX(10px);
+    transition: all 0.3s ease;
+}
+
+.product-card:hover .product-actions-overlay {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.quick-action-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: white;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transition: all 0.2s ease;
+    text-decoration: none;
+    color: #333;
+}
+
+.quick-action-btn:hover {
+    background: #ff6b6b;
+    color: white;
+    transform: scale(1.1);
+}
+
+.remove-from-wishlist:hover {
+    background: #dc3545;
+}
+
+.product-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.badge-sale {
+    background: #ff6b6b;
+    color: white;
+}
+
+.badge-new {
+    background: #51cf66;
+    color: white;
+}
+
+.badge-out-of-stock {
+    background: #868e96;
+    color: white;
+}
+
+.product-body {
+    padding: 1.25rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.product-category {
+    color: #868e96;
+    font-size: 13px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.5rem;
+}
+
+.product-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    line-height: 1.4;
+}
+
+.product-title a {
+    color: #212529;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.product-title a:hover {
+    color: #ff6b6b;
+}
+
+.product-price-wrapper {
+    margin-bottom: 0.75rem;
+}
+
+.product-price {
+    color: #ff6b6b;
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.product-price-old {
+    color: #868e96;
+    font-size: 14px;
+    text-decoration: line-through;
+    margin-right: 8px;
+}
+
+.product-rating {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 1rem;
+    font-size: 14px;
+}
+
+.stars {
+    color: #ffd43b;
+}
+
+.rating-count {
+    color: #868e96;
+    font-size: 13px;
+}
+
+.btn-add-cart {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.btn-add-cart:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+}
+
+.btn-out-of-stock {
+    background: #e9ecef;
+    color: #868e96;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: not-allowed;
+}
+
+.wishlist-date {
+    color: #868e96;
+    font-size: 12px;
+}
+
+.page-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.page-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.empty-state {
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.pagination {
+    gap: 8px;
+}
+
+.page-link {
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+    color: #495057;
+    padding: 8px 12px;
+}
+
+.page-item.active .page-link {
+    background: #ff6b6b;
+    border-color: #ff6b6b;
+}
+
+.page-link:hover {
+    background: #f8f9fa;
+    border-color: #dee2e6;
+    color: #ff6b6b;
+}
+</style>
+{% endblock %}
+
+
+
+

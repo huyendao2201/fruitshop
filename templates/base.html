@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Cửa Hàng Trái Cây Tươi{% endblock %}</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/modern-style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/blueberry.css' %}">
+    <link rel="stylesheet" href="{% static 'css/shop-modern.css' %}?v=8">
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Top Banner -->
+    <div class="top-banner bg-gradient-primary text-white py-2">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <small><i class="bi bi-lightning-charge-fill"></i> <strong>Khuyến Mãi:</strong> Giảm 30% Cho Tất Cả Trái Cây Tươi!</small>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <small>
+                        <a href="#" class="text-white me-3"><i class="bi bi-telephone"></i> +84 987 654 321</a>
+                        <a href="#" class="text-white"><i class="bi bi-envelope"></i> hello@freshberry.vn</a>
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
+        <div class="container">
+            <a class="navbar-brand brand-logo" href="{% url 'home' %}">
+                <i class="bi bi-shop text-success fs-3"></i>
+                <span class="fw-bold text-success">Fresh</span><span class="text-dark">Berry</span>
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <!-- Search Bar -->
+                <div class="mx-auto d-none d-lg-block" style="max-width: 400px;">
+                    <form class="search-form position-relative" method="get" action="{% url 'products:product_list' %}">
+                        <input type="text" name="query" class="form-control ps-4" placeholder="Tìm kiếm trái cây, rau củ..." value="{{ request.GET.query }}">
+                        <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-2 text-muted"></i>
+                    </form>
+                </div>
+                
+                <ul class="navbar-nav ms-auto align-items-center">
+                    <li class="nav-item">
+                        <a class="nav-link fw-500" href="{% url 'home' %}">
+                            <i class="bi bi-house-door"></i> Trang Chủ
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link fw-500" href="{% url 'products:product_list' %}">
+                            <i class="bi bi-grid"></i> Cửa Hàng
+                        </a>
+                    </li>
+                    
+                    <!-- Wishlist -->
+                    <li class="nav-item">
+                        {% if user.is_authenticated %}
+                        <a class="nav-link position-relative icon-link" href="{% url 'products:wishlist' %}" title="Yêu Thích">
+                            <i class="bi bi-heart fs-5"></i>
+                            {% if wishlist_count > 0 %}
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger icon-badge">
+                                {{ wishlist_count }}
+                            </span>
+                            {% endif %}
+                        </a>
+                        {% else %}
+                        <a class="nav-link position-relative icon-link" href="{% url 'accounts:login' %}?next={% url 'products:wishlist' %}" title="Đăng Nhập để Xem Yêu Thích">
+                            <i class="bi bi-heart fs-5"></i>
+                        </a>
+                        {% endif %}
+                    </li>
+                    
+                    <!-- Cart -->
+                    <li class="nav-item">
+                        <a class="nav-link position-relative icon-link" href="{% url 'orders:cart' %}" title="Giỏ Hàng">
+                            <i class="bi bi-cart3 fs-5"></i>
+                            {% if cart_count > 0 %}
+                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-success icon-badge">
+                                    {{ cart_count }}
+                                </span>
+                            {% endif %}
+                        </a>
+                    </li>
+                    
+                    <!-- User Account -->
+                    {% if user.is_authenticated %}
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown">
+                                <div class="user-avatar me-2">
+                                    <i class="bi bi-person-circle fs-5"></i>
+                                </div>
+                                <span class="d-none d-lg-inline">{{ user.username }}</span>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end shadow">
+                                <li><a class="dropdown-item" href="{% url 'accounts:profile' %}"><i class="bi bi-person me-2"></i>Hồ Sơ</a></li>
+                                <li><a class="dropdown-item" href="{% url 'orders:order_list' %}"><i class="bi bi-bag-check me-2"></i>Đơn Hàng Của Tôi</a></li>
+                                {% if user.role == 'admin' %}
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="{% url 'reports:dashboard' %}"><i class="bi bi-speedometer2 me-2"></i>Bảng Điều Khiển</a></li>
+                                    <li><a class="dropdown-item" href="{% url 'admin:index' %}"><i class="bi bi-gear me-2"></i>Quản Trị</a></li>
+                                {% endif %}
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <form method="post" action="{% url 'accounts:logout' %}" style="margin: 0;">
+                                        {% csrf_token %}
+                                        <button type="submit" class="dropdown-item text-danger" style="border: none; background: none; width: 100%; text-align: left; cursor: pointer;">
+                                            <i class="bi bi-box-arrow-right me-2"></i>Đăng Xuất
+                                        </button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="btn btn-outline-success btn-sm me-2" href="{% url 'accounts:login' %}">
+                                <i class="bi bi-box-arrow-in-right"></i> Đăng Nhập
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="btn btn-success btn-sm" href="{% url 'accounts:register' %}">
+                                <i class="bi bi-person-plus"></i> Đăng Ký
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Messages - Toast Style (Bottom Right) -->
+    {% if messages %}
+        <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 9999;">
+            {% for message in messages %}
+                <div class="toast show alert-{{ message.tags }}" role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="true" data-bs-delay="5000">
+                    <div class="toast-header bg-{{ message.tags }} text-white">
+                        <i class="bi bi-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' or message.tags == 'danger' %}exclamation-circle{% elif message.tags == 'warning' %}exclamation-triangle{% else %}info-circle{% endif %} me-2"></i>
+                        <strong class="me-auto">
+                            {% if message.tags == 'success' %}Thành Công
+                            {% elif message.tags == 'error' or message.tags == 'danger' %}Lỗi
+                            {% elif message.tags == 'warning' %}Cảnh Báo
+                            {% else %}Thông Báo{% endif %}
+                        </strong>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                    <div class="toast-body">
+                        {{ message }}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Main Content -->
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Newsletter Section -->
+    <section class="newsletter-section bg-gradient-success text-white py-5 mt-5">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6 mb-3 mb-lg-0">
+                    <h3 class="fw-bold mb-2">
+                        <i class="bi bi-envelope-heart me-2"></i>
+                        Đăng Ký Nhận Tin
+                    </h3>
+                    <p class="mb-0">Nhận thông tin mới nhất về sản phẩm và chương trình khuyến mãi</p>
+                </div>
+                <div class="col-lg-6">
+                    <form class="newsletter-form" method="post" action="{% url 'products:newsletter_subscribe' %}">
+                        {% csrf_token %}
+                        <div class="input-group input-group-lg">
+                            <input type="email" name="email" class="form-control" placeholder="Nhập địa chỉ email của bạn" required>
+                            <button class="btn btn-dark" type="submit">
+                                <i class="bi bi-send-fill me-2"></i>Đăng Ký
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer-section bg-dark text-light pt-5 pb-3">
+        <div class="container">
+            <div class="row g-4">
+                <!-- About Column -->
+                <div class="col-lg-3 col-md-6">
+                    <h5 class="fw-bold mb-3">
+                        <i class="bi bi-shop text-success fs-4"></i>
+                        <span class="text-success">Fresh</span><span>Berry</span>
+                    </h5>
+                    <p class="text-muted" style="color: white !important;">FreshFruit là cửa hàng bán các loại trái cây sạch.</p>
+                    <!--
+                    <div class="social-links mt-3">
+                        <a href="#" class="btn btn-outline-light btn-sm rounded-circle me-2"><i class="bi bi-facebook"></i></a>
+                        <a href="#" class="btn btn-outline-light btn-sm rounded-circle me-2"><i class="bi bi-twitter"></i></a>
+                        <a href="#" class="btn btn-outline-light btn-sm rounded-circle me-2"><i class="bi bi-instagram"></i></a>
+                        <a href="#" class="btn btn-outline-light btn-sm rounded-circle"><i class="bi bi-youtube"></i></a>
+                    </div>-->
+                </div>
+
+                <!-- Categories Column -->
+                <div class="col-lg-2 col-md-6">
+                    <h5 class="fw-bold mb-3">Danh Mục</h5>
+                    <ul class="list-unstyled footer-links">
+                        {% for category in footer_categories %}
+                        <li><a href="{% url 'products:products_by_category' category.slug %}"><i class="bi bi-chevron-right"></i> {{ category.name }}</a></li>
+                        {% empty %}
+                        <li><a href="{% url 'products:product_list' %}"><i class="bi bi-chevron-right"></i> Tất cả sản phẩm</a></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+                <!-- Quick Links Column -->
+                <div class="col-lg-2 col-md-6">
+                    <h5 class="fw-bold mb-3">Liên Kết</h5>
+                    <ul class="list-unstyled footer-links">
+                        <li><a href="{% url 'home' %}"><i class="bi bi-chevron-right"></i> Trang Chủ</a></li>
+                        <li><a href="{% url 'products:product_list' %}"><i class="bi bi-chevron-right"></i> Cửa Hàng</a></li>
+                        <li><a href="#"><i class="bi bi-chevron-right"></i> Về Chúng Tôi</a></li>
+                        <li><a href="#"><i class="bi bi-chevron-right"></i> Liên Hệ</a></li>
+                        <li><a href="#"><i class="bi bi-chevron-right"></i> Tin Tức</a></li>
+                    </ul>
+                </div>
+
+                <!-- Account Column -->
+                <div class="col-lg-2 col-md-6">
+                    <h5 class="fw-bold mb-3">Tài Khoản</h5>
+                    <ul class="list-unstyled footer-links">
+                        {% if user.is_authenticated %}
+                            <li><a href="{% url 'accounts:profile' %}"><i class="bi bi-chevron-right"></i> Hồ Sơ</a></li>
+                            <li><a href="{% url 'orders:order_list' %}"><i class="bi bi-chevron-right"></i> Đơn Hàng</a></li>
+                        {% else %}
+                            <li><a href="{% url 'accounts:login' %}"><i class="bi bi-chevron-right"></i> Đăng Nhập</a></li>
+                            <li><a href="{% url 'accounts:register' %}"><i class="bi bi-chevron-right"></i> Đăng Ký</a></li>
+                        {% endif %}
+                        <li><a href="{% url 'orders:cart' %}"><i class="bi bi-chevron-right"></i> Giỏ Hàng</a></li>
+                        <li><a href="{% url 'products:wishlist' %}"><i class="bi bi-chevron-right"></i> Yêu Thích</a></li>
+                        <li><a href="#"><i class="bi bi-chevron-right"></i> Theo Dõi Đơn</a></li>
+                    </ul>
+                </div>
+
+                <!-- Contact Column -->
+                <div class="col-lg-3 col-md-6">
+                    <h5 class="fw-bold mb-3">Liên Hệ</h5>
+                    <ul class="list-unstyled footer-contact">
+                        <li class="mb-2">
+                            <i class="bi bi-geo-alt-fill text-success me-2"></i>
+                            <span>123 Đường Lê Duẩn, Quận 1, TP.HCM</span>
+                        </li>
+                        <li class="mb-2">
+                            <i class="bi bi-telephone-fill text-success me-2"></i>
+                            <a href="tel:+84987654321">+84 987 654 321</a>
+                        </li>
+                        <li class="mb-2">
+                            <i class="bi bi-envelope-fill text-success me-2"></i>
+                            <a href="mailto:hello@freshberry.vn">hello@freshfruit.vn</a>
+                        </li>
+                        <li class="mb-2">
+                            <i class="bi bi-clock-fill text-success me-2"></i>
+                            <span>T2 - T6: 8:00 - 20:00</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <hr class="my-4 border-secondary">
+
+            <div class="row align-items-center">
+                <div class="col-md-6 text-center text-md-start">
+                    <p class="mb-0 text-muted">
+                        &copy; 2025 <span class="text-success">FreshFruit</span>. Bản quyền thuộc về chúng tôi.
+                    </p>
+                </div>
+                <!--
+                <div class="col-md-6 text-center text-md-end">
+                    <img src="https://via.placeholder.com/200x30/333/fff?text=Phuong+Thuc+Thanh+Toan" alt="Phương thức thanh toán" class="img-fluid" style="max-height: 30px;">
+                </div>-->
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scroll to Top Button -->
+    <button id="scrollTopBtn" class="scroll-top-btn" title="Go to top">
+        <i class="bi bi-arrow-up"></i>
+    </button>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom JS -->
+    <script>
+        // Scroll to Top Button
+        const scrollTopBtn = document.getElementById('scrollTopBtn');
+        
+        window.addEventListener('scroll', () => {
+            if (window.pageYOffset > 300) {
+                scrollTopBtn.classList.add('show');
+            } else {
+                scrollTopBtn.classList.remove('show');
+            }
+        });
+        
+        scrollTopBtn.addEventListener('click', () => {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+
+        // Auto-hide Toast Messages
+        document.addEventListener('DOMContentLoaded', function() {
+            const toastElements = document.querySelectorAll('.toast');
+            toastElements.forEach(function(toastElement) {
+                const toast = new bootstrap.Toast(toastElement, {
+                    autohide: true,
+                    delay: 5000
+                });
+                toast.show();
+            });
+        });
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

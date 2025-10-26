@@ -1,0 +1,321 @@
+{% extends 'admin_dashboard/base.html' %}
+
+{% block title %}{% if object %}Chỉnh Sửa Sản Phẩm{% else %}Thêm Sản Phẩm Mới{% endif %}{% endblock %}
+
+{% block page_title %}{% if object %}Chỉnh Sửa Sản Phẩm{% else %}Thêm Sản Phẩm Mới{% endif %}{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'reports:product_list' %}" class="btn btn-sm btn-secondary shadow-sm">
+    <i class="fas fa-arrow-left fa-sm"></i> Quay Lại
+</a>
+{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    {% if object %}Cập Nhật Thông Tin Sản Phẩm{% else %}Nhập Thông Tin Sản Phẩm{% endif %}
+                </h6>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    {% if form.errors %}
+                    <div class="alert alert-danger">
+                        <strong>Có lỗi xảy ra:</strong>
+                        <ul class="mb-0">
+                            {% for field in form %}
+                                {% for error in field.errors %}
+                                <li>{{ field.label }}: {{ error }}</li>
+                                {% endfor %}
+                            {% endfor %}
+                            {% for error in form.non_field_errors %}
+                            <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Tên Sản Phẩm -->
+                    <div class="form-group">
+                        <label for="{{ form.name.id_for_label }}" class="font-weight-bold">
+                            Tên Sản Phẩm <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" 
+                               name="{{ form.name.name }}" 
+                               id="{{ form.name.id_for_label }}"
+                               class="form-control {% if form.name.errors %}is-invalid{% endif %}" 
+                               value="{{ form.name.value|default:'' }}"
+                               required>
+                        <small class="form-text text-muted">Tên sản phẩm hiển thị trên website</small>
+                    </div>
+                    
+                    <!-- Mô Tả Chi Tiết -->
+                    <div class="form-group">
+                        <label for="{{ form.description.id_for_label }}" class="font-weight-bold">
+                            Mô Tả
+                        </label>
+                        <textarea name="{{ form.description.name }}" 
+                                  id="{{ form.description.id_for_label }}"
+                                  class="form-control {% if form.description.errors %}is-invalid{% endif %}" 
+                                  rows="4">{{ form.description.value|default:'' }}</textarea>
+                        <small class="form-text text-muted">Mô tả chi tiết về sản phẩm</small>
+                    </div>
+                    
+                    <!-- Mô Tả Ngắn -->
+                    <div class="form-group">
+                        <label for="{{ form.short_description.id_for_label }}" class="font-weight-bold">
+                            Mô Tả Ngắn
+                        </label>
+                        <input type="text" 
+                               name="{{ form.short_description.name }}" 
+                               id="{{ form.short_description.id_for_label }}"
+                               class="form-control {% if form.short_description.errors %}is-invalid{% endif %}" 
+                               value="{{ form.short_description.value|default:'' }}"
+                               maxlength="300">
+                        <small class="form-text text-muted">Mô tả ngắn gọn hiển thị trong danh sách sản phẩm (tối đa 300 ký tự)</small>
+                    </div>
+                    
+                    <!-- Danh Mục & Đơn Vị -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.category.id_for_label }}" class="font-weight-bold">
+                                    Danh Mục <span class="text-danger">*</span>
+                                </label>
+                                {{ form.category }}
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.unit.id_for_label }}" class="font-weight-bold">
+                                    Đơn Vị <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" 
+                                       name="{{ form.unit.name }}" 
+                                       id="{{ form.unit.id_for_label }}"
+                                       class="form-control {% if form.unit.errors %}is-invalid{% endif %}" 
+                                       value="{{ form.unit.value|default:'' }}"
+                                       required>
+                                <small class="form-text text-muted">VD: kg, cái, hộp, túi</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Giá Gốc & Giá Khuyến Mãi -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.price.id_for_label }}" class="font-weight-bold">
+                                    Giá Gốc (VNĐ) <span class="text-danger">*</span>
+                                </label>
+                                <input type="number" 
+                                       name="{{ form.price.name }}" 
+                                       id="{{ form.price.id_for_label }}"
+                                       class="form-control {% if form.price.errors %}is-invalid{% endif %}" 
+                                       value="{{ form.price.value|default:'' }}"
+                                       step="0.01"
+                                       required>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.discount_price.id_for_label }}" class="font-weight-bold">
+                                    Giá Khuyến Mãi (VNĐ)
+                                </label>
+                                <input type="number" 
+                                       name="{{ form.discount_price.name }}" 
+                                       id="{{ form.discount_price.id_for_label }}"
+                                       class="form-control {% if form.discount_price.errors %}is-invalid{% endif %}" 
+                                       value="{{ form.discount_price.value|default:'' }}"
+                                       step="0.01">
+                                <small class="form-text text-muted">Để trống nếu không có khuyến mãi</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Tồn Kho & Xuất Xứ -->
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.stock.id_for_label }}" class="font-weight-bold">
+                                    Tồn Kho <span class="text-danger">*</span>
+                                </label>
+                                <input type="number" 
+                                       name="{{ form.stock.name }}" 
+                                       id="{{ form.stock.id_for_label }}"
+                                       class="form-control {% if form.stock.errors %}is-invalid{% endif %}" 
+                                       value="{{ form.stock.value|default:'' }}"
+                                       min="0"
+                                       required>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ form.origin.id_for_label }}" class="font-weight-bold">
+                                    Xuất Xứ
+                                </label>
+                                <input type="text" 
+                                       name="{{ form.origin.name }}" 
+                                       id="{{ form.origin.id_for_label }}"
+                                       class="form-control {% if form.origin.errors %}is-invalid{% endif %}" 
+                                       value="{{ form.origin.value|default:'' }}">
+                                <small class="form-text text-muted">VD: Việt Nam, Thái Lan, Úc</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Thông Tin Dinh Dưỡng -->
+                    <div class="form-group">
+                        <label for="{{ form.nutrition_info.id_for_label }}" class="font-weight-bold">
+                            Thông Tin Dinh Dưỡng
+                        </label>
+                        <textarea name="{{ form.nutrition_info.name }}" 
+                                  id="{{ form.nutrition_info.id_for_label }}"
+                                  class="form-control {% if form.nutrition_info.errors %}is-invalid{% endif %}" 
+                                  rows="3">{{ form.nutrition_info.value|default:'' }}</textarea>
+                        <small class="form-text text-muted">Thông tin về giá trị dinh dưỡng, vitamin, khoáng chất...</small>
+                    </div>
+                    
+                    <!-- Hình Ảnh -->
+                    <div class="form-group">
+                        <label for="{{ form.image.id_for_label }}" class="font-weight-bold">
+                            Hình Ảnh Sản Phẩm
+                        </label>
+                        {% if object and object.image %}
+                        <div class="mb-2">
+                            <img src="{{ object.image.url }}" alt="{{ object.name }}" style="max-width: 200px; max-height: 200px; object-fit: cover; border-radius: 5px;">
+                            <p class="text-muted mt-2">Hình ảnh hiện tại</p>
+                        </div>
+                        {% endif %}
+                        <input type="file" 
+                               name="{{ form.image.name }}" 
+                               id="{{ form.image.id_for_label }}"
+                               class="form-control-file {% if form.image.errors %}is-invalid{% endif %}"
+                               accept="image/*">
+                        <small class="form-text text-muted">Chọn hình ảnh đại diện cho sản phẩm (PNG, JPG, JPEG)</small>
+                    </div>
+                    
+                    <!-- Trạng Thái Sản Phẩm -->
+                    <div class="form-group">
+                        <label class="font-weight-bold d-block mb-3">Trạng Thái Sản Phẩm</label>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="custom-control custom-checkbox mb-2">
+                                    <input type="checkbox" 
+                                           name="{{ form.is_active.name }}" 
+                                           id="{{ form.is_active.id_for_label }}"
+                                           class="custom-control-input"
+                                           {% if form.is_active.value %}checked{% endif %}>
+                                    <label class="custom-control-label" for="{{ form.is_active.id_for_label }}">
+                                        <i class="fas fa-check-circle text-success"></i> Đang bán
+                                    </label>
+                                </div>
+                                
+                                <div class="custom-control custom-checkbox mb-2">
+                                    <input type="checkbox" 
+                                           name="{{ form.is_featured.name }}" 
+                                           id="{{ form.is_featured.id_for_label }}"
+                                           class="custom-control-input"
+                                           {% if form.is_featured.value %}checked{% endif %}>
+                                    <label class="custom-control-label" for="{{ form.is_featured.id_for_label }}">
+                                        <i class="fas fa-star text-warning"></i> Nổi bật (Hiển thị trang chủ)
+                                    </label>
+                                </div>
+                                
+                                <div class="custom-control custom-checkbox mb-2">
+                                    <input type="checkbox" 
+                                           name="{{ form.is_new.name }}" 
+                                           id="{{ form.is_new.id_for_label }}"
+                                           class="custom-control-input"
+                                           {% if form.is_new.value %}checked{% endif %}>
+                                    <label class="custom-control-label" for="{{ form.is_new.id_for_label }}">
+                                        <i class="fas fa-certificate text-info"></i> Sản phẩm mới
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="custom-control custom-checkbox mb-2">
+                                    <input type="checkbox" 
+                                           name="{{ form.is_bestseller.name }}" 
+                                           id="{{ form.is_bestseller.id_for_label }}"
+                                           class="custom-control-input"
+                                           {% if form.is_bestseller.value %}checked{% endif %}>
+                                    <label class="custom-control-label" for="{{ form.is_bestseller.id_for_label }}">
+                                        <i class="fas fa-trophy text-primary"></i> Bán chạy
+                                    </label>
+                                </div>
+                                
+                                <div class="custom-control custom-checkbox mb-2">
+                                    <input type="checkbox" 
+                                           name="{{ form.is_hot.name }}" 
+                                           id="{{ form.is_hot.id_for_label }}"
+                                           class="custom-control-input"
+                                           {% if form.is_hot.value %}checked{% endif %}>
+                                    <label class="custom-control-label" for="{{ form.is_hot.id_for_label }}">
+                                        <i class="fas fa-fire text-danger"></i> HOT (Đang thịnh hành)
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <small class="form-text text-muted">Chọn các trạng thái phù hợp với sản phẩm</small>
+                    </div>
+                    
+                    <hr>
+                    
+                    <!-- SEO Settings -->
+                    <div class="form-group">
+                        <label class="font-weight-bold d-block mb-3">
+                            <i class="fas fa-search"></i> Tối Ưu Hóa SEO
+                        </label>
+                        
+                        <div class="form-group">
+                            <label for="{{ form.meta_keywords.id_for_label }}">Từ Khóa SEO</label>
+                            <input type="text" 
+                                   name="{{ form.meta_keywords.name }}" 
+                                   id="{{ form.meta_keywords.id_for_label }}"
+                                   class="form-control {% if form.meta_keywords.errors %}is-invalid{% endif %}" 
+                                   value="{{ form.meta_keywords.value|default:'' }}"
+                                   maxlength="255">
+                            <small class="form-text text-muted">Các từ khóa cách nhau bởi dấu phẩy (VD: táo, táo ngọt, táo Việt Nam)</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="{{ form.meta_description.id_for_label }}">Mô Tả SEO</label>
+                            <textarea name="{{ form.meta_description.name }}" 
+                                      id="{{ form.meta_description.id_for_label }}"
+                                      class="form-control {% if form.meta_description.errors %}is-invalid{% endif %}" 
+                                      rows="2"
+                                      maxlength="255">{{ form.meta_description.value|default:'' }}</textarea>
+                            <small class="form-text text-muted">Mô tả ngắn gọn cho công cụ tìm kiếm (tối đa 255 ký tự)</small>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <!-- Buttons -->
+                    <div class="form-group mb-0">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> {% if object %}Cập Nhật{% else %}Thêm Mới{% endif %}
+                        </button>
+                        <a href="{% url 'reports:product_list' %}" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Hủy
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+

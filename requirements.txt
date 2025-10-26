@@ -1,0 +1,24 @@
+# FreshBerry Fruit Shop - Python Dependencies
+# Django Framework
+Django>=5.2.0
+
+# Image Processing
+Pillow>=10.0.0
+
+# HTTP Requests (for loading sample data with images)
+requests>=2.31.0
+
+# Text Processing (for slug generation)
+Unidecode>=1.4.0
+
+# Database (MySQL support)
+mysqlclient>=2.2.0
+
+# Development Tools (optional)
+# django-debug-toolbar>=4.2.0
+# django-extensions>=3.2.3
+
+# Production Server (optional)
+# gunicorn>=21.2.0
+# whitenoise>=6.6.0
+

@@ -1,0 +1,386 @@
+{% extends 'admin_dashboard/base.html' %}
+
+{% block title %}Chi Tiết User - {{ user_detail.username }}{% endblock %}
+
+{% block page_title %}Chi Tiết User: {{ user_detail.username }}{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'reports:user_list' %}" class="btn btn-sm btn-secondary shadow-sm">
+    <i class="fas fa-arrow-left fa-sm"></i> Quay lại
+</a>
+<a href="{% url 'reports:user_edit' user_detail.id %}" class="btn btn-sm btn-primary shadow-sm">
+    <i class="fas fa-edit fa-sm"></i> Chỉnh sửa
+</a>
+{% if user_detail != request.user %}
+<a href="{% url 'reports:user_delete' user_detail.id %}" class="btn btn-sm btn-danger shadow-sm"
+   onclick="return confirm('Bạn có chắc chắn muốn xóa user này?')">
+    <i class="fas fa-trash fa-sm"></i> Xóa
+</a>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+
+<!-- User Basic Info -->
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Thông Tin Cơ Bản</h6>
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless">
+                    <tr>
+                        <th width="200">Username:</th>
+                        <td><strong class="text-primary">{{ user_detail.username }}</strong></td>
+                    </tr>
+                    <tr>
+                        <th>Email:</th>
+                        <td>{{ user_detail.email|default:"-" }}</td>
+                    </tr>
+                    <tr>
+                        <th>Họ Tên:</th>
+                        <td>{{ user_detail.get_full_name|default:"-" }}</td>
+                    </tr>
+                    <tr>
+                        <th>Số Điện Thoại:</th>
+                        <td>{{ user_detail.phone|default:"-" }}</td>
+                    </tr>
+                    <tr>
+                        <th>Địa Chỉ:</th>
+                        <td>{{ user_detail.address|default:"-" }}</td>
+                    </tr>
+                    <tr>
+                        <th>Ngày Đăng Ký:</th>
+                        <td>{{ user_detail.date_joined|date:"d/m/Y H:i" }}</td>
+                    </tr>
+                    <tr>
+                        <th>Lần Đăng Nhập Cuối:</th>
+                        <td>{{ user_detail.last_login|date:"d/m/Y H:i"|default:"-" }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <!-- Status & Roles -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Trạng Thái & Quyền</h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <strong>Trạng Thái:</strong><br>
+                    {% if user_detail.is_active %}
+                        <span class="badge badge-success badge-lg">
+                            <i class="fas fa-check-circle"></i> Hoạt động
+                        </span>
+                    {% else %}
+                        <span class="badge badge-secondary badge-lg">
+                            <i class="fas fa-ban"></i> Vô hiệu hóa
+                        </span>
+                    {% endif %}
+                </div>
+
+                <div class="mb-3">
+                    <strong>Quyền hệ thống:</strong><br>
+                    {% if user_detail.is_superuser %}
+                        <span class="badge badge-danger">
+                            <i class="fas fa-crown"></i> Superuser
+                        </span>
+                    {% endif %}
+                    {% if user_detail.is_staff %}
+                        <span class="badge badge-warning">
+                            <i class="fas fa-user-tie"></i> Staff
+                        </span>
+                    {% endif %}
+                    {% if not user_detail.is_superuser and not user_detail.is_staff %}
+                        <span class="text-muted">Không có</span>
+                    {% endif %}
+                </div>
+
+                <div class="mb-3">
+                    <strong>Groups:</strong><br>
+                    {% for group in user_groups %}
+                        {% if group.name == 'Staff' %}
+                            <span class="badge badge-warning">{{ group.name }}</span>
+                        {% elif group.name == 'Shipper' %}
+                            <span class="badge badge-info">{{ group.name }}</span>
+                        {% elif group.name == 'Customer' %}
+                            <span class="badge badge-success">{{ group.name }}</span>
+                        {% else %}
+                            <span class="badge badge-secondary">{{ group.name }}</span>
+                        {% endif %}
+                    {% empty %}
+                        <span class="text-muted">Không thuộc group nào</span>
+                    {% endfor %}
+                </div>
+
+                {% if user_detail != request.user %}
+                <hr>
+                <div class="mt-3">
+                    <form method="post" action="{% url 'reports:user_toggle_active' user_detail.id %}">
+                        {% csrf_token %}
+                        {% if user_detail.is_active %}
+                            <button type="submit" class="btn btn-sm btn-warning btn-block"
+                                    onclick="return confirm('Bạn có chắc chắn muốn vô hiệu hóa user này?')">
+                                <i class="fas fa-ban"></i> Vô Hiệu Hóa
+                            </button>
+                        {% else %}
+                            <button type="submit" class="btn btn-sm btn-success btn-block">
+                                <i class="fas fa-check"></i> Kích Hoạt
+                            </button>
+                        {% endif %}
+                    </form>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Reset Password -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-warning">Reset Mật Khẩu</h6>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{% url 'reports:user_reset_password' user_detail.id %}">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="new_password">Mật khẩu mới:</label>
+                        <input type="text" class="form-control" id="new_password" name="new_password" value="password123">
+                    </div>
+                    <button type="submit" class="btn btn-warning btn-block"
+                            onclick="return confirm('Bạn có chắc chắn muốn reset mật khẩu?')">
+                        <i class="fas fa-key"></i> Reset Mật Khẩu
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delivery Person Info (for Shippers) -->
+{% if delivery_person %}
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 bg-info text-white">
+                <h6 class="m-0 font-weight-bold">
+                    <i class="fas fa-shipping-fast"></i> Thông Tin Delivery Person
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <strong>Phương Tiện:</strong><br>
+                        {% if delivery_person.vehicle_type == 'motorbike' %}
+                            <i class="fas fa-motorcycle"></i> Xe máy
+                        {% elif delivery_person.vehicle_type == 'bicycle' %}
+                            <i class="fas fa-bicycle"></i> Xe đạp
+                        {% elif delivery_person.vehicle_type == 'car' %}
+                            <i class="fas fa-car"></i> Xe hơi
+                        {% else %}
+                            {{ delivery_person.get_vehicle_type_display }}
+                        {% endif %}
+                    </div>
+                    <div class="col-md-3">
+                        <strong>Biển Số:</strong><br>
+                        {{ delivery_person.vehicle_number|default:"-" }}
+                    </div>
+                    <div class="col-md-2">
+                        <strong>Đánh Giá:</strong><br>
+                        <span class="text-warning">
+                            {% for i in "12345" %}
+                                {% if forloop.counter <= delivery_person.rating %}
+                                    <i class="fas fa-star"></i>
+                                {% else %}
+                                    <i class="far fa-star"></i>
+                                {% endif %}
+                            {% endfor %}
+                        </span>
+                        ({{ delivery_person.rating }}/5)
+                    </div>
+                    <div class="col-md-2">
+                        <strong>Tổng Đơn:</strong><br>
+                        {{ delivery_person.total_deliveries }}
+                    </div>
+                    <div class="col-md-2">
+                        <strong>Thành Công:</strong><br>
+                        <span class="text-success">{{ delivery_person.successful_deliveries }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Customer Orders (for Customers) -->
+{% if orders %}
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 bg-success text-white">
+                <h6 class="m-0 font-weight-bold">
+                    <i class="fas fa-shopping-cart"></i> Đơn Hàng Của Khách ({{ total_orders }} đơn - Tổng chi tiêu: {{ total_spent|floatformat:0 }}đ)
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Mã Đơn</th>
+                                <th>Ngày Đặt</th>
+                                <th>Tổng Tiền</th>
+                                <th>Trạng Thái</th>
+                                <th>Thanh Toán</th>
+                                <th>Thao Tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for order in orders %}
+                            <tr>
+                                <td><strong>#{{ order.order_number }}</strong></td>
+                                <td>{{ order.created_at|date:"d/m/Y H:i" }}</td>
+                                <td class="text-success font-weight-bold">{{ order.total_amount|floatformat:0 }}đ</td>
+                                <td>
+                                    {% if order.status == 'pending' %}
+                                        <span class="badge badge-warning">Chờ xác nhận</span>
+                                    {% elif order.status == 'confirmed' %}
+                                        <span class="badge badge-info">Đã xác nhận</span>
+                                    {% elif order.status == 'delivered' %}
+                                        <span class="badge badge-success">Đã giao</span>
+                                    {% elif order.status == 'canceled' %}
+                                        <span class="badge badge-danger">Đã hủy</span>
+                                    {% else %}
+                                        <span class="badge badge-secondary">{{ order.get_status_display }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if order.payment_status == 'paid' %}
+                                        <span class="badge badge-success">Đã thanh toán</span>
+                                    {% else %}
+                                        <span class="badge badge-warning">Chưa thanh toán</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{% url 'reports:order_detail' order.id %}" class="btn btn-sm btn-info">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <a href="{% url 'reports:order_list' %}?search={{ user_detail.email }}" class="btn btn-success btn-sm mt-2">
+                    Xem Tất Cả Đơn Hàng <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Deliveries (for Shippers) -->
+{% if deliveries %}
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 bg-info text-white">
+                <h6 class="m-0 font-weight-bold">
+                    <i class="fas fa-truck"></i> Đơn Giao Hàng Gần Đây
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Mã Đơn</th>
+                                <th>Khách Hàng</th>
+                                <th>Địa Chỉ</th>
+                                <th>Ngày Tạo</th>
+                                <th>Trạng Thái</th>
+                                <th>Thao Tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for delivery in deliveries %}
+                            <tr>
+                                <td><strong>#{{ delivery.order.order_number }}</strong></td>
+                                <td>{{ delivery.order.user.get_full_name|default:delivery.order.user.username }}</td>
+                                <td>{{ delivery.recipient_address|truncatewords:5 }}</td>
+                                <td>{{ delivery.created_at|date:"d/m/Y H:i" }}</td>
+                                <td>
+                                    {% if delivery.status == 'pending' %}
+                                        <span class="badge badge-warning">Chờ phân công</span>
+                                    {% elif delivery.status == 'assigned' %}
+                                        <span class="badge badge-info">Đã phân công</span>
+                                    {% elif delivery.status == 'picked_up' %}
+                                        <span class="badge badge-primary">Đã lấy hàng</span>
+                                    {% elif delivery.status == 'in_transit' %}
+                                        <span class="badge badge-info">Đang giao</span>
+                                    {% elif delivery.status == 'delivered' %}
+                                        <span class="badge badge-success">Đã giao</span>
+                                    {% elif delivery.status == 'failed' %}
+                                        <span class="badge badge-danger">Thất bại</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{% url 'delivery:delivery_detail' delivery.id %}" class="btn btn-sm btn-info">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Reviews -->
+{% if reviews %}
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-star"></i> Đánh Giá Gần Đây
+                </h6>
+            </div>
+            <div class="card-body">
+                {% for review in reviews %}
+                <div class="mb-3 pb-3 {% if not forloop.last %}border-bottom{% endif %}">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <strong>{{ review.product.name }}</strong>
+                        </div>
+                        <div class="text-warning">
+                            {% for i in "12345" %}
+                                {% if forloop.counter <= review.rating %}
+                                    <i class="fas fa-star"></i>
+                                {% else %}
+                                    <i class="far fa-star"></i>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <small class="text-muted">{{ review.created_at|date:"d/m/Y H:i" }}</small>
+                    <p class="mb-0 mt-2">{{ review.comment }}</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
+

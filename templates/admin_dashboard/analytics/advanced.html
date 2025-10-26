@@ -1,0 +1,486 @@
+{% extends 'admin_dashboard/base.html' %}
+
+{% block title %}Thống Kê Nâng Cao{% endblock %}
+
+{% block page_title %}Thống Kê & Phân Tích Nâng Cao{% endblock %}
+
+{% block page_actions %}
+<button class="btn btn-sm btn-primary shadow-sm" onclick="window.print()">
+    <i class="fas fa-print fa-sm"></i> In Báo Cáo
+</button>
+{% endblock %}
+
+{% block content %}
+
+<!-- Date Range Filter -->
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">
+            <i class="fas fa-calendar"></i> Chọn Khoảng Thời Gian
+        </h6>
+    </div>
+    <div class="card-body">
+        <form method="get" class="form-inline">
+            <div class="form-group mr-3">
+                <label class="mr-2">Từ ngày:</label>
+                <input type="date" name="date_from" class="form-control" value="{{ date_from|date:'Y-m-d' }}">
+            </div>
+            <div class="form-group mr-3">
+                <label class="mr-2">Đến ngày:</label>
+                <input type="date" name="date_to" class="form-control" value="{{ date_to|date:'Y-m-d' }}">
+            </div>
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-filter"></i> Lọc
+            </button>
+            <a href="{% url 'reports:advanced_analytics' %}" class="btn btn-secondary ml-2">
+                <i class="fas fa-redo"></i> Đặt lại
+            </a>
+        </form>
+    </div>
+</div>
+
+<!-- Summary Cards -->
+<div class="row">
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            Doanh Thu Kỳ
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ period_total_revenue|floatformat:0 }}đ
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            Tổng Đơn Hàng
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ period_total_orders }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-shopping-cart fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                            Khách Hàng Mua
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ period_total_customers }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-users fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                            Giá Trị TB/Đơn
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ period_avg_order_value|floatformat:0 }}đ
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-chart-line fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row 1 -->
+<div class="row">
+    <!-- Revenue Trend -->
+    <div class="col-xl-8 col-lg-7">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-chart-area"></i> Xu Hướng Doanh Thu Theo Ngày
+                </h6>
+            </div>
+            <div class="card-body">
+                <canvas id="revenueChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Status Distribution -->
+    <div class="col-xl-4 col-lg-5">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-chart-pie"></i> Phân Bố Trạng Thái Đơn
+                </h6>
+            </div>
+            <div class="card-body">
+                <canvas id="orderStatusChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row 2 -->
+<div class="row">
+    <!-- Top Products -->
+    <div class="col-xl-6 col-lg-6">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-chart-bar"></i> Top 10 Sản Phẩm Bán Chạy
+                </h6>
+            </div>
+            <div class="card-body">
+                <canvas id="topProductsChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Category Performance -->
+    <div class="col-xl-6 col-lg-6">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-chart-pie"></i> Doanh Thu Theo Danh Mục
+                </h6>
+            </div>
+            <div class="card-body">
+                <canvas id="categoryChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row 3 -->
+<div class="row">
+    <!-- Payment Methods -->
+    <div class="col-xl-6 col-lg-6">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-credit-card"></i> Phương Thức Thanh Toán
+                </h6>
+            </div>
+            <div class="card-body">
+                <canvas id="paymentMethodChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Customer Acquisition -->
+    <div class="col-xl-6 col-lg-6">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-user-plus"></i> Khách Hàng Mới Theo Ngày
+                </h6>
+            </div>
+            <div class="card-body">
+                <canvas id="customerAcquisitionChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Top Customers Table -->
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-star"></i> Top 10 Khách Hàng Tiềm Năng
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Tên Khách Hàng</th>
+                                <th>Email</th>
+                                <th>Tổng Chi Tiêu</th>
+                                <th>Số Đơn Hàng</th>
+                                <th>Trung Bình/Đơn</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for customer in top_customers %}
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td>
+                                    <strong>{{ customer.customer__username }}</strong>
+                                </td>
+                                <td>{{ customer.customer__email }}</td>
+                                <td><span class="text-success font-weight-bold">{{ customer.total_spent|floatformat:0 }}đ</span></td>
+                                <td>{{ customer.order_count }}</td>
+                                <td>{{ customer.total_spent|floatformat:0|divisibleby:customer.order_count }}đ</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center text-muted">Không có dữ liệu</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<script>
+// Revenue Trend Chart
+const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+new Chart(revenueCtx, {
+    type: 'line',
+    data: {
+        labels: {{ revenue_dates|safe }},
+        datasets: [{
+            label: 'Doanh Thu (đ)',
+            data: {{ revenue_amounts|safe }},
+            borderColor: 'rgb(78, 115, 223)',
+            backgroundColor: 'rgba(78, 115, 223, 0.05)',
+            tension: 0.3,
+            fill: true
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    callback: function(value) {
+                        return value.toLocaleString() + 'đ';
+                    }
+                }
+            }
+        },
+        plugins: {
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        return 'Doanh thu: ' + context.parsed.y.toLocaleString() + 'đ';
+                    }
+                }
+            }
+        }
+    }
+});
+
+// Order Status Chart
+const orderStatusCtx = document.getElementById('orderStatusChart').getContext('2d');
+new Chart(orderStatusCtx, {
+    type: 'doughnut',
+    data: {
+        labels: {{ status_labels|safe }},
+        datasets: [{
+            data: {{ status_counts|safe }},
+            backgroundColor: [
+                'rgb(255, 193, 7)',
+                'rgb(23, 162, 184)',
+                'rgb(0, 123, 255)',
+                'rgb(111, 66, 193)',
+                'rgb(32, 201, 151)',
+                'rgb(40, 167, 69)',
+                'rgb(220, 53, 69)'
+            ]
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false
+    }
+});
+
+// Top Products Chart
+const topProductsCtx = document.getElementById('topProductsChart').getContext('2d');
+new Chart(topProductsCtx, {
+    type: 'bar',
+    data: {
+        labels: {{ top_product_names|safe }},
+        datasets: [{
+            label: 'Doanh Thu (đ)',
+            data: {{ top_product_revenue|safe }},
+            backgroundColor: 'rgba(78, 115, 223, 0.8)',
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        indexAxis: 'y',
+        scales: {
+            x: {
+                beginAtZero: true,
+                ticks: {
+                    callback: function(value) {
+                        return value.toLocaleString() + 'đ';
+                    }
+                }
+            }
+        },
+        plugins: {
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        return 'Doanh thu: ' + context.parsed.x.toLocaleString() + 'đ';
+                    }
+                }
+            }
+        }
+    }
+});
+
+// Category Chart
+const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+new Chart(categoryCtx, {
+    type: 'pie',
+    data: {
+        labels: {{ category_names|safe }},
+        datasets: [{
+            data: {{ category_revenue|safe }},
+            backgroundColor: [
+                'rgb(255, 99, 132)',
+                'rgb(54, 162, 235)',
+                'rgb(255, 205, 86)',
+                'rgb(75, 192, 192)',
+                'rgb(153, 102, 255)',
+                'rgb(255, 159, 64)',
+                'rgb(199, 199, 199)'
+            ]
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        return context.label + ': ' + context.parsed.toLocaleString() + 'đ';
+                    }
+                }
+            }
+        }
+    }
+});
+
+// Payment Method Chart
+const paymentCtx = document.getElementById('paymentMethodChart').getContext('2d');
+new Chart(paymentCtx, {
+    type: 'bar',
+    data: {
+        labels: {{ payment_methods|safe }},
+        datasets: [{
+            label: 'Số Đơn',
+            data: {{ payment_counts|safe }},
+            backgroundColor: 'rgba(54, 162, 235, 0.8)',
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+
+// Customer Acquisition Chart
+const customerAcqCtx = document.getElementById('customerAcquisitionChart').getContext('2d');
+new Chart(customerAcqCtx, {
+    type: 'bar',
+    data: {
+        labels: {{ customer_dates|safe }},
+        datasets: [{
+            label: 'Khách Hàng Mới',
+            data: {{ customer_counts|safe }},
+            backgroundColor: 'rgba(40, 167, 69, 0.8)',
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    stepSize: 1
+                }
+            }
+        }
+    }
+});
+</script>
+
+<style>
+canvas {
+    height: 300px !important;
+}
+
+@media print {
+    .no-print {
+        display: none;
+    }
+}
+</style>
+{% endblock %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

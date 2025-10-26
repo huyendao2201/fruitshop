@@ -1,0 +1,23 @@
+THONG TIN DANG NHAP:
+------------------------------------------------------------
+Username:  admin
+Password:  admin123
+Email:     admin@freshberry.vn
+Role:      Quan tri vien
+Phone:     +84987654321
+------------------------------------------------------------
+
+CACH SU DUNG:
+------------------------------------------------------------
+1. Start server:
+   python manage.py runserver
+
+2. Truy cap Admin Dashboard (MOI!):
+   http://127.0.0.1:8000/reports/dashboard/
+
+3. Truy cap Django Admin:
+   http://127.0.0.1:8000/admin/
+
+4. Dang nhap voi:
+   Username: admin
+   Password: admin123

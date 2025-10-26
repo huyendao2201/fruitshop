@@ -1,0 +1,362 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load product_tags %}
+
+{% block title %}
+    {% if current_category %}
+        {{ current_category.name }} - Sản Phẩm
+    {% else %}
+        Tất Cả Sản Phẩm
+    {% endif %} - Fresh Berry
+{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb -->
+<div class="container">
+    <nav aria-label="breadcrumb" class="breadcrumb-wrapper">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'home' %}"><i class="bi bi-house-door"></i> Trang Chủ</a></li>
+            <li class="breadcrumb-item active">Cửa Hàng</li>
+        </ol>
+    </nav>
+</div>
+
+<!-- Shop Page -->
+<section class="shop-page modern-layout">
+    <div class="container-fluid px-4">
+        <!-- Filter Bar -->
+        <div class="filter-bar">
+            <div class="filter-bar-header">
+                <button class="btn btn-filter-toggle" id="filterToggle">
+                    <i class="bi bi-funnel"></i>
+                    <span>Bộ Lọc</span>
+                    <i class="bi bi-chevron-down toggle-icon"></i>
+                </button>
+                <div class="active-filters" id="activeFilters"></div>
+            </div>
+            
+            <div class="filter-bar-content" id="filterContent">
+                <div class="filter-row">
+                    <!-- Search Filter -->
+                    <div class="filter-group" style="flex: 0 0 100%; max-width: 100%; margin-bottom: 1rem;">
+                        <label class="filter-label">
+                            <i class="bi bi-search"></i>
+                            Tìm Kiếm
+                        </label>
+                        <form method="get" class="d-flex gap-2">
+                            <input type="text" name="query" class="form-control" 
+                                   placeholder="Tìm kiếm trái cây..." value="{{ request.GET.query }}">
+                            {% if request.GET.min_price %}
+                                <input type="hidden" name="min_price" value="{{ request.GET.min_price }}">
+                            {% endif %}
+                            {% if request.GET.max_price %}
+                                <input type="hidden" name="max_price" value="{{ request.GET.max_price }}">
+                            {% endif %}
+                            {% if request.GET.in_stock %}
+                                <input type="hidden" name="in_stock" value="on">
+                            {% endif %}
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-search"></i>
+                            </button>
+                        </form>
+                    </div>
+                    
+                    <!-- Category Filter -->
+                    <div class="filter-group">
+                        <label class="filter-label">
+                            <i class="bi bi-grid-3x3-gap"></i>
+                            Danh Mục
+                        </label>
+                        <div class="category-pills">
+                            <a href="{% url 'products:product_list' %}" 
+                               class="pill {% if not current_category %}active{% endif %}">
+                                Tất Cả Sản Phẩm
+                            </a>
+                            {% for category in categories %}
+                            <a href="{% url 'products:products_by_category' category.slug %}" 
+                               class="pill {% if current_category.id == category.id %}active{% endif %}">
+                                {{ category.name }}
+                                <span class="pill-count">{{ category.product_count }}</span>
+                            </a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <!-- Price Filter -->
+                    <div class="filter-group">
+                        <label class="filter-label">
+                            <i class="bi bi-cash-stack"></i>
+                            Khoảng Giá
+                        </label>
+                        <form method="get" class="price-filter-inline" id="priceFilterForm">
+                            <input type="number" name="min_price" class="form-control form-control-sm" 
+                                   placeholder="Tối thiểu" value="{{ request.GET.min_price }}">
+                            <span class="price-separator">đến</span>
+                            <input type="number" name="max_price" class="form-control form-control-sm" 
+                                   placeholder="Tối đa" value="{{ request.GET.max_price }}">
+                            <button type="submit" class="btn btn-sm btn-primary">
+                                <i class="bi bi-check"></i>
+                            </button>
+                        </form>
+                    </div>
+                    
+                    <!-- Stock Filter -->
+                    <div class="filter-group">
+                        <label class="filter-label">
+                            <i class="bi bi-box-seam"></i>
+                            Tình Trạng
+                        </label>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="inStockToggle" 
+                                   name="in_stock" {% if request.GET.in_stock %}checked{% endif %}>
+                            <label class="form-check-label" for="inStockToggle">
+                                Chỉ Còn Hàng
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- Clear Filters -->
+                    {% if request.GET.query or request.GET.min_price or request.GET.max_price or request.GET.in_stock or current_category %}
+                    <div class="filter-group">
+                        <a href="{% url 'products:product_list' %}" class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-x-circle"></i>
+                            Xóa Tất Cả
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="products-container">
+                <!-- Toolbar -->
+                <div class="shop-toolbar">
+                    <div class="toolbar-left">
+                        <h2 class="shop-title">
+                            {% if request.GET.query %}
+                                Kết Quả Tìm Kiếm: "{{ request.GET.query }}"
+                            {% elif current_category %}
+                                {{ current_category.name }}
+                            {% else %}
+                                Tất Cả Sản Phẩm
+                            {% endif %}
+                        </h2>
+                        <p class="results-count">
+                            Hiển thị <strong>{{ products|length }}</strong> kết quả
+                        </p>
+                    </div>
+                    <div class="toolbar-right">
+                        <select class="form-select sort-select" onchange="window.location.href=this.value">
+                            <option value="?sort_by=newest">Sắp xếp: Mới nhất</option>
+                            <option value="?sort_by=price_low">Giá: Thấp đến Cao</option>
+                            <option value="?sort_by=price_high">Giá: Cao đến Thấp</option>
+                            <option value="?sort_by=name">Tên: A-Z</option>
+                        </select>
+                        <div class="view-mode">
+                            <button class="view-btn active" data-view="grid">
+                                <i class="bi bi-grid-3x3-gap"></i>
+                            </button>
+                            <button class="view-btn" data-view="list">
+                                <i class="bi bi-list"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Products Grid -->
+                <div class="products-grid">
+                    {% for product in products %}
+                    <div class="product-card">
+                        <!-- Product Image -->
+                        <div class="product-image-wrapper">
+                            <a href="{% url 'products:product_detail' product.slug %}" class="product-image-link">
+                                {% if product.get_primary_image %}
+                                    <img src="{{ product.get_primary_image.url }}" class="product-image" alt="{{ product.name }}">
+                                {% else %}
+                                    <div class="product-image-placeholder">
+                                        <i class="bi bi-image"></i>
+                                        <span>Không Có Ảnh</span>
+                                    </div>
+                                {% endif %}
+                            </a>
+                            
+                            <!-- Badges -->
+                            <div class="product-badges">
+                                {% if product.is_new %}
+                                    <span class="badge badge-new">Mới</span>
+                                {% endif %}
+                                {% if product.discount_price %}
+                                    <span class="badge badge-sale">-{{ product.discount_percentage }}%</span>
+                                {% endif %}
+                                {% if product.is_hot %}
+                                    <span class="badge badge-hot">Hot</span>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Quick Actions -->
+                            <div class="product-quick-actions">
+                                {% if user.is_authenticated %}
+                                    <button class="quick-action-btn wishlist-toggle {% if product.id in user_wishlist_ids %}active{% endif %}" 
+                                            data-product-slug="{{ product.slug }}"
+                                            data-wishlist-url="{% url 'products:toggle_wishlist' product.slug %}"
+                                            title="Thêm Vào Yêu Thích">
+                                        <i class="bi bi-heart{% if product.id in user_wishlist_ids %}-fill{% endif %}"></i>
+                                    </button>
+                                {% else %}
+                                    <a href="{% url 'accounts:login' %}?next={{ request.path }}" class="quick-action-btn" title="Đăng nhập để thêm vào yêu thích">
+                                        <i class="bi bi-heart"></i>
+                                    </a>
+                                {% endif %}
+                                <a href="{% url 'products:product_detail' product.slug %}" class="quick-action-btn" title="Xem Chi Tiết">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                            </div>
+                        </div>
+                        
+                        <!-- Product Info -->
+                        <div class="product-body">
+                            <div class="product-category">
+                                <i class="bi bi-tag-fill"></i>
+                                {{ product.category.name|default:"Chưa Phân Loại" }}
+                            </div>
+                            
+                            <h3 class="product-title">
+                                <a href="{% url 'products:product_detail' product.slug %}">{{ product.name }}</a>
+                            </h3>
+                            
+                            <!-- Rating -->
+                            <div class="product-rating">
+                                <div class="stars">
+                                    {% if product.average_rating > 0 %}
+                                        {% for i in "12345" %}
+                                            {% if forloop.counter <= product.average_rating %}
+                                                <i class="bi bi-star-fill"></i>
+                                            {% else %}
+                                                <i class="bi bi-star"></i>
+                                            {% endif %}
+                                        {% endfor %}
+                                        <span class="rating-count">({{ product.average_rating }})</span>
+                                    {% else %}
+                                        <span class="no-rating">Chưa có đánh giá</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <!-- Price & Stock -->
+                            <div class="product-footer">
+                                <div class="product-price-wrapper">
+                                    {% if product.discount_price %}
+                                        <span class="product-price-old">{{ product.price|vnd }}</span>
+                                        <span class="product-price">{{ product.discount_price|vnd }}</span>
+                                    {% else %}
+                                        <span class="product-price">{{ product.price|vnd }}</span>
+                                    {% endif %}
+                                    <span class="product-unit">/ {{ product.unit }}</span>
+                                </div>
+                                <div class="product-stock">
+                                    {% if product.stock > 10 %}
+                                        <span class="stock-badge in-stock">
+                                            <i class="bi bi-check-circle-fill"></i>
+                                            Còn Hàng
+                                        </span>
+                                    {% elif product.stock > 0 %}
+                                        <span class="stock-badge low-stock">
+                                            <i class="bi bi-exclamation-circle-fill"></i>
+                                            Chỉ Còn {{ product.stock }}
+                                        </span>
+                                    {% else %}
+                                        <span class="stock-badge out-stock">
+                                            <i class="bi bi-x-circle-fill"></i>
+                                            Hết Hàng
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <!-- Action Button -->
+                            <div class="product-actions">
+                                {% if product.is_in_stock %}
+                                    <form method="post" action="{% url 'orders:add_to_cart' product.pk %}" class="add-cart-form">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-add-cart" title="Thêm vào giỏ">
+                                            <i class="bi bi-cart-plus"></i>
+                                        </button>
+                                    </form>
+                                {% else %}
+                                    <button class="btn btn-add-cart" disabled title="Hết hàng">
+                                        <i class="bi bi-x-circle"></i>
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="empty-state">
+                        <div class="empty-state-icon">
+                            <i class="bi bi-search"></i>
+                        </div>
+                        <h3 class="empty-state-title">Không Tìm Thấy Sản Phẩm</h3>
+                        <p class="empty-state-text">
+                            {% if request.GET.query %}
+                                Không tìm thấy sản phẩm nào với từ khóa "{{ request.GET.query }}".
+                            {% elif current_category %}
+                                Chưa có sản phẩm nào trong danh mục này.
+                            {% else %}
+                                Chưa có sản phẩm nào lúc này.
+                            {% endif %}
+                        </p>
+                        <a href="{% url 'products:product_list' %}" class="btn btn-primary">
+                            <i class="bi bi-grid-3x3-gap"></i>
+                            Xem Tất Cả Sản Phẩm
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Pagination -->
+                {% if is_paginated %}
+                <nav class="pagination-wrapper">
+                    <ul class="pagination">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page=1">
+                                    <i class="bi bi-chevron-double-left"></i>
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">
+                                    <i class="bi bi-chevron-left"></i>
+                                </a>
+                            </li>
+                        {% endif %}
+                        
+                        <li class="page-item active">
+                            <span class="page-link">
+                                Trang {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
+                            </span>
+                        </li>
+                        
+                        {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}">
+                                    <i class="bi bi-chevron-right"></i>
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">
+                                    <i class="bi bi-chevron-double-right"></i>
+                                </a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/shop-modern.js' %}"></script>
+{% endblock %}

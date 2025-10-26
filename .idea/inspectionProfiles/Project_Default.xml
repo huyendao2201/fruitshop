@@ -1,0 +1,56 @@
+<component name="InspectionProjectProfileManager">
+  <profile version="1.0">
+    <option name="myName" value="Project Default" />
+    <inspection_tool class="Eslint" enabled="true" level="WARNING" enabled_by_default="true" />
+    <inspection_tool class="HtmlUnknownTag" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="myValues">
+        <value>
+          <list size="15">
+            <item index="0" class="java.lang.String" itemvalue="nobr" />
+            <item index="1" class="java.lang.String" itemvalue="noembed" />
+            <item index="2" class="java.lang.String" itemvalue="comment" />
+            <item index="3" class="java.lang.String" itemvalue="noscript" />
+            <item index="4" class="java.lang.String" itemvalue="embed" />
+            <item index="5" class="java.lang.String" itemvalue="script" />
+            <item index="6" class="java.lang.String" itemvalue="v-app" />
+            <item index="7" class="java.lang.String" itemvalue="v-app-bar" />
+            <item index="8" class="java.lang.String" itemvalue="v-app-bar-title" />
+            <item index="9" class="java.lang.String" itemvalue="v-navigation-drawer" />
+            <item index="10" class="java.lang.String" itemvalue="v-list" />
+            <item index="11" class="java.lang.String" itemvalue="v-list-item" />
+            <item index="12" class="java.lang.String" itemvalue="v-main" />
+            <item index="13" class="java.lang.String" itemvalue="v-container" />
+            <item index="14" class="java.lang.String" itemvalue="router-view" />
+          </list>
+        </value>
+      </option>
+      <option name="myCustomValuesEnabled" value="true" />
+    </inspection_tool>
+    <inspection_tool class="PyPackageRequirementsInspection" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="ignoredPackages">
+        <value>
+          <list size="11">
+            <item index="0" class="java.lang.String" itemvalue="numpy" />
+            <item index="1" class="java.lang.String" itemvalue="pandas" />
+            <item index="2" class="java.lang.String" itemvalue="seaborn" />
+            <item index="3" class="java.lang.String" itemvalue="joblib" />
+            <item index="4" class="java.lang.String" itemvalue="scikit-learn" />
+            <item index="5" class="java.lang.String" itemvalue="matplotlib" />
+            <item index="6" class="java.lang.String" itemvalue="plotly" />
+            <item index="7" class="java.lang.String" itemvalue="dash" />
+            <item index="8" class="java.lang.String" itemvalue="Flask" />
+            <item index="9" class="java.lang.String" itemvalue="werkzeug" />
+            <item index="10" class="java.lang.String" itemvalue="flask" />
+          </list>
+        </value>
+      </option>
+    </inspection_tool>
+    <inspection_tool class="PyUnresolvedReferencesInspection" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="ignoredIdentifiers">
+        <list>
+          <option value="user_app.models.*" />
+        </list>
+      </option>
+    </inspection_tool>
+  </profile>
+</component>

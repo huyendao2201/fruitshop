@@ -1,0 +1,284 @@
+{% extends 'admin_dashboard/base.html' %}
+{% load static %}
+
+{% block title %}Quản Lý Đăng Ký Nhận Tin{% endblock %}
+
+{% block page_title %}Quản Lý Đăng Ký Nhận Tin{% endblock %}
+
+{% block page_actions %}
+<div class="d-flex align-items-center">
+    <a href="{% url 'reports:dashboard' %}" class="btn btn-secondary btn-sm mr-2">
+        <i class="fas fa-arrow-left"></i> Quay Lại
+    </a>
+</div>
+{% endblock %}
+
+{% block content %}
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            Tổng Đăng Ký
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_subscribers }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-envelope fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            Đang Hoạt Động
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ active_subscribers }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-danger shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                            Đã Hủy
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ inactive_subscribers }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-ban fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                            7 Ngày Gần Đây
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ recent_subscribers }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-calendar-plus fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">
+            <i class="fas fa-filter"></i> Tìm Kiếm & Lọc
+        </h6>
+    </div>
+    <div class="card-body">
+        <form method="get" action="{% url 'reports:newsletter_list' %}">
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label for="search" class="form-label">Tìm theo Email</label>
+                    <input type="text" class="form-control" id="search" name="search" 
+                           placeholder="Nhập email..." value="{{ search_query }}">
+                </div>
+                
+                <div class="col-md-2 mb-3">
+                    <label for="status" class="form-label">Trạng thái</label>
+                    <select class="form-control" id="status" name="status">
+                        <option value="">Tất cả</option>
+                        <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Đang hoạt động</option>
+                        <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Đã hủy</option>
+                    </select>
+                </div>
+                
+                <div class="col-md-2 mb-3">
+                    <label for="date_from" class="form-label">Từ ngày</label>
+                    <input type="date" class="form-control" id="date_from" name="date_from" value="{{ date_from }}">
+                </div>
+                
+                <div class="col-md-2 mb-3">
+                    <label for="date_to" class="form-label">Đến ngày</label>
+                    <input type="date" class="form-control" id="date_to" name="date_to" value="{{ date_to }}">
+                </div>
+                
+                <div class="col-md-2 mb-3 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary btn-block">
+                        <i class="fas fa-search"></i> Tìm Kiếm
+                    </button>
+                </div>
+            </div>
+            
+            {% if search_query or status_filter or date_from or date_to %}
+            <div class="row">
+                <div class="col-12">
+                    <a href="{% url 'reports:newsletter_list' %}" class="btn btn-link">
+                        <i class="fas fa-times"></i> Xóa bộ lọc
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        </form>
+    </div>
+</div>
+
+<!-- Newsletter List -->
+<div class="card shadow mb-4">
+    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+        <h6 class="m-0 font-weight-bold text-primary">
+            <i class="fas fa-list"></i> Danh Sách Đăng Ký ({{ newsletters|length }})
+        </h6>
+    </div>
+    <div class="card-body">
+        {% if newsletters %}
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover" id="dataTable" width="100%" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Email</th>
+                        <th>Trạng Thái</th>
+                        <th>Ngày Đăng Ký</th>
+                        <th>Ngày Hủy</th>
+                        <th>Thao Tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for newsletter in newsletters %}
+                    <tr>
+                        <td>{{ newsletter.id }}</td>
+                        <td>
+                            <a href="{% url 'reports:newsletter_detail' newsletter.pk %}">
+                                <i class="fas fa-envelope"></i> {{ newsletter.email }}
+                            </a>
+                        </td>
+                        <td>
+                            {% if newsletter.is_active %}
+                                <span class="badge badge-success">
+                                    <i class="fas fa-check-circle"></i> Đang hoạt động
+                                </span>
+                            {% else %}
+                                <span class="badge badge-danger">
+                                    <i class="fas fa-ban"></i> Đã hủy
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <small>
+                                <i class="fas fa-calendar"></i> 
+                                {{ newsletter.subscribed_at|date:"d/m/Y H:i" }}
+                            </small>
+                        </td>
+                        <td>
+                            {% if newsletter.unsubscribed_at %}
+                                <small>
+                                    <i class="fas fa-calendar-times"></i> 
+                                    {{ newsletter.unsubscribed_at|date:"d/m/Y H:i" }}
+                                </small>
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'reports:newsletter_detail' newsletter.pk %}" 
+                               class="btn btn-info btn-sm" title="Xem chi tiết">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            
+                            <form method="post" action="{% url 'reports:newsletter_toggle_active' newsletter.pk %}" 
+                                  style="display: inline;" onsubmit="return confirm('Bạn có chắc chắn muốn thay đổi trạng thái?');">
+                                {% csrf_token %}
+                                {% if newsletter.is_active %}
+                                    <button type="submit" class="btn btn-warning btn-sm" title="Vô hiệu hóa">
+                                        <i class="fas fa-ban"></i>
+                                    </button>
+                                {% else %}
+                                    <button type="submit" class="btn btn-success btn-sm" title="Kích hoạt">
+                                        <i class="fas fa-check"></i>
+                                    </button>
+                                {% endif %}
+                            </form>
+                            
+                            <form method="post" action="{% url 'reports:newsletter_delete' newsletter.pk %}" 
+                                  style="display: inline;" onsubmit="return confirm('Bạn có chắc chắn muốn xóa đăng ký này?');">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger btn-sm" title="Xóa">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Pagination -->
+        {% if is_paginated %}
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}">
+                        <i class="fas fa-angle-double-left"></i>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}">
+                        <i class="fas fa-angle-left"></i>
+                    </a>
+                </li>
+                {% endif %}
+                
+                <li class="page-item active">
+                    <span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+                </li>
+                
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}">
+                        <i class="fas fa-angle-right"></i>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}">
+                        <i class="fas fa-angle-double-right"></i>
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+        
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+            <p class="text-muted">Không có đăng ký nhận tin nào.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+

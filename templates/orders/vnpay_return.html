@@ -1,0 +1,303 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Kết Quả Thanh Toán - VNPay{% endblock %}
+
+{% block extra_css %}
+<style>
+    .payment-result {
+        max-width: 700px;
+        margin: 50px auto;
+        padding: 40px;
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+    
+    .result-icon {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+    
+    .result-icon.success i {
+        font-size: 80px;
+        color: #28a745;
+    }
+    
+    .result-icon.error i {
+        font-size: 80px;
+        color: #dc3545;
+    }
+    
+    .result-title {
+        text-align: center;
+        font-size: 28px;
+        font-weight: bold;
+        margin-bottom: 15px;
+    }
+    
+    .result-title.success {
+        color: #28a745;
+    }
+    
+    .result-title.error {
+        color: #dc3545;
+    }
+    
+    .result-message {
+        text-align: center;
+        font-size: 16px;
+        color: #666;
+        margin-bottom: 30px;
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 8px;
+    }
+    
+    .transaction-details {
+        background: #f8f9fa;
+        padding: 25px;
+        border-radius: 10px;
+        margin-bottom: 30px;
+    }
+    
+    .detail-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 12px 0;
+        border-bottom: 1px solid #dee2e6;
+    }
+    
+    .detail-row:last-child {
+        border-bottom: none;
+    }
+    
+    .detail-label {
+        font-weight: 600;
+        color: #495057;
+    }
+    
+    .detail-value {
+        color: #212529;
+        text-align: right;
+    }
+    
+    .action-buttons {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        margin-top: 30px;
+    }
+    
+    .btn-action {
+        padding: 12px 30px;
+        border-radius: 8px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s;
+    }
+    
+    .btn-primary-action {
+        background: #4CAF50;
+        color: white;
+    }
+    
+    .btn-primary-action:hover {
+        background: #45a049;
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+    }
+    
+    .btn-secondary-action {
+        background: #6c757d;
+        color: white;
+    }
+    
+    .btn-secondary-action:hover {
+        background: #5a6268;
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
+    }
+    
+    .vnpay-logo {
+        text-align: center;
+        margin-top: 30px;
+        padding-top: 20px;
+        border-top: 1px solid #dee2e6;
+    }
+    
+    .vnpay-logo img {
+        height: 40px;
+        opacity: 0.7;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="payment-result">
+        {% if success %}
+            <!-- Success Result -->
+            <div class="result-icon success">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            
+            <h1 class="result-title success">✅ Thanh Toán Thành Công!</h1>
+            
+            <div class="result-message">
+                {{ message }}
+            </div>
+            
+            <div class="transaction-details">
+                <h3 style="margin-bottom: 20px; color: #28a745;">
+                    <i class="fas fa-receipt"></i> Chi Tiết Giao Dịch
+                </h3>
+                
+                <div class="detail-row">
+                    <span class="detail-label">Mã đơn hàng:</span>
+                    <span class="detail-value"><strong>{{ order.order_number }}</strong></span>
+                </div>
+                
+                <div class="detail-row">
+                    <span class="detail-label">Số tiền thanh toán:</span>
+                    <span class="detail-value"><strong style="color: #28a745; font-size: 18px;">{{ order.total_amount|floatformat:0 }}đ</strong></span>
+                </div>
+                
+                {% if response_data.transaction_no %}
+                <div class="detail-row">
+                    <span class="detail-label">Mã giao dịch VNPay:</span>
+                    <span class="detail-value">{{ response_data.transaction_no }}</span>
+                </div>
+                {% endif %}
+                
+                {% if response_data.bank_code %}
+                <div class="detail-row">
+                    <span class="detail-label">Ngân hàng:</span>
+                    <span class="detail-value">{{ response_data.bank_code }}</span>
+                </div>
+                {% endif %}
+                
+                {% if response_data.card_type %}
+                <div class="detail-row">
+                    <span class="detail-label">Loại thẻ:</span>
+                    <span class="detail-value">{{ response_data.card_type }}</span>
+                </div>
+                {% endif %}
+                
+                <div class="detail-row">
+                    <span class="detail-label">Thời gian:</span>
+                    <span class="detail-value">{{ order.vnpay_paid_at|date:"d/m/Y H:i" }}</span>
+                </div>
+            </div>
+            
+            <div class="alert alert-success" style="text-align: center;">
+                <i class="fas fa-envelope"></i> Email xác nhận đã được gửi đến <strong>{{ order.email }}</strong>
+            </div>
+            
+            <div class="action-buttons">
+                <a href="{% url 'orders:order_detail' order.order_number %}" class="btn-action btn-primary-action">
+                    <i class="fas fa-file-invoice"></i> Xem Chi Tiết Đơn Hàng
+                </a>
+                <a href="{% url 'products:product_list' %}" class="btn-action btn-secondary-action">
+                    <i class="fas fa-shopping-bag"></i> Tiếp Tục Mua Sắm
+                </a>
+            </div>
+            
+        {% else %}
+            <!-- Error Result -->
+            <div class="result-icon error">
+                <i class="fas fa-times-circle"></i>
+            </div>
+            
+            <h1 class="result-title error">❌ Thanh Toán Thất Bại</h1>
+            
+            <div class="result-message">
+                {{ message }}
+            </div>
+            
+            {% if order %}
+            <div class="transaction-details">
+                <h3 style="margin-bottom: 20px; color: #dc3545;">
+                    <i class="fas fa-exclamation-triangle"></i> Thông Tin Giao Dịch
+                </h3>
+                
+                <div class="detail-row">
+                    <span class="detail-label">Mã đơn hàng:</span>
+                    <span class="detail-value"><strong>{{ order.order_number }}</strong></span>
+                </div>
+                
+                <div class="detail-row">
+                    <span class="detail-label">Số tiền:</span>
+                    <span class="detail-value"><strong>{{ order.total_amount|floatformat:0 }}đ</strong></span>
+                </div>
+                
+                {% if response_data.response_code %}
+                <div class="detail-row">
+                    <span class="detail-label">Mã lỗi:</span>
+                    <span class="detail-value" style="color: #dc3545;">{{ response_data.response_code }}</span>
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="alert alert-warning" style="text-align: center;">
+                <i class="fas fa-info-circle"></i> Đơn hàng của bạn vẫn được lưu. Bạn có thể thử thanh toán lại.
+            </div>
+            
+            <div class="action-buttons">
+                <a href="{% url 'orders:vnpay_payment' order.id %}" class="btn-action btn-primary-action">
+                    <i class="fas fa-redo"></i> Thử Lại Thanh Toán
+                </a>
+                <a href="{% url 'orders:order_detail' order.order_number %}" class="btn-action btn-secondary-action">
+                    <i class="fas fa-file-invoice"></i> Xem Đơn Hàng
+                </a>
+            </div>
+            {% else %}
+            <div class="action-buttons">
+                <a href="{% url 'orders:cart' %}" class="btn-action btn-primary-action">
+                    <i class="fas fa-shopping-cart"></i> Về Giỏ Hàng
+                </a>
+                <a href="{% url 'products:product_list' %}" class="btn-action btn-secondary-action">
+                    <i class="fas fa-home"></i> Về Trang Chủ
+                </a>
+            </div>
+            {% endif %}
+        {% endif %}
+        
+        <div class="vnpay-logo">
+            <p style="color: #999; font-size: 14px; margin-bottom: 10px;">Thanh toán qua</p>
+            <img src="https://vnpay.vn/s1/statics.vnpay.vn/2023/6/0oxhzjmxbksr1686814746087.png" alt="VNPay">
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Auto scroll to top
+    window.scrollTo(0, 0);
+    
+    // Confetti effect for success
+    {% if success %}
+    // You can add confetti library here if needed
+    console.log('Payment successful! 🎉');
+    {% endif %}
+</script>
+{% endblock %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

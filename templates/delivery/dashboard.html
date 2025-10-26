@@ -1,0 +1,376 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Delivery Dashboard - Fresh Berry{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 2rem 0;
+        margin: -1rem -15px 2rem -15px;
+        border-radius: 0 0 20px 20px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    
+    .stat-card {
+        background: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        margin-bottom: 1.5rem;
+        transition: all 0.3s ease;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+    }
+    
+    .stat-icon {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .stat-number {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #2c3e50;
+    }
+    
+    .stat-label {
+        color: #7f8c8d;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .delivery-card {
+        background: white;
+        border-radius: 10px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        transition: all 0.3s ease;
+    }
+    
+    .delivery-card:hover {
+        box-shadow: 0 4px 15px rgba(0,0,0,0.12);
+    }
+    
+    .status-badge {
+        padding: 0.3rem 0.8rem;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+    
+    .status-pending { background: #fff3cd; color: #856404; }
+    .status-assigned { background: #cfe2ff; color: #084298; }
+    .status-picked_up { background: #d1e7dd; color: #0f5132; }
+    .status-in_transit { background: #cff4fc; color: #055160; }
+    .status-delivered { background: #d1e7dd; color: #0f5132; }
+    .status-failed { background: #f8d7da; color: #842029; }
+    
+    .person-card {
+        background: white;
+        border-radius: 10px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    
+    .person-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 700;
+        font-size: 1.2rem;
+    }
+    
+    .alert-delayed {
+        background: #fff3cd;
+        border-left: 4px solid #ffc107;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+    }
+    
+    .section-title {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .btn-assign {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        color: white;
+        padding: 0.4rem 1rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-assign:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <div class="container">
+        <h2><i class="bi bi-truck"></i> Delivery Dashboard</h2>
+        <p class="mb-0">Quản lý và theo dõi giao hàng</p>
+    </div>
+</div>
+
+<!-- Statistics -->
+<div class="row mb-4">
+    <div class="col-md-2 col-6">
+        <div class="stat-card text-center">
+            <div class="stat-icon">⏳</div>
+            <div class="stat-number">{{ stats.total_pending }}</div>
+            <div class="stat-label">Chờ phân công</div>
+        </div>
+    </div>
+    <div class="col-md-2 col-6">
+        <div class="stat-card text-center">
+            <div class="stat-icon">📋</div>
+            <div class="stat-number">{{ stats.total_assigned }}</div>
+            <div class="stat-label">Đã phân công</div>
+        </div>
+    </div>
+    <div class="col-md-2 col-6">
+        <div class="stat-card text-center">
+            <div class="stat-icon">🚚</div>
+            <div class="stat-number">{{ stats.total_in_transit }}</div>
+            <div class="stat-label">Đang giao</div>
+        </div>
+    </div>
+    <div class="col-md-2 col-6">
+        <div class="stat-card text-center">
+            <div class="stat-icon">✅</div>
+            <div class="stat-number">{{ stats.total_delivered_today }}</div>
+            <div class="stat-label">Đã giao hôm nay</div>
+        </div>
+    </div>
+    <div class="col-md-2 col-6">
+        <div class="stat-card text-center">
+            <div class="stat-icon">❌</div>
+            <div class="stat-number">{{ stats.total_failed_today }}</div>
+            <div class="stat-label">Thất bại hôm nay</div>
+        </div>
+    </div>
+    <div class="col-md-2 col-6">
+        <div class="stat-card text-center">
+            <a href="{% url 'delivery:statistics' %}" class="text-decoration-none">
+                <div class="stat-icon">📊</div>
+                <div class="stat-label">Xem thống kê</div>
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Delayed Deliveries Alert -->
+{% if delayed_deliveries %}
+<div class="alert-delayed">
+    <h5><i class="bi bi-exclamation-triangle"></i> Cảnh báo: {{ delayed_deliveries.count }} đơn hàng bị trễ!</h5>
+    {% for delivery in delayed_deliveries %}
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <span>
+            <strong>{{ delivery.order.order_number }}</strong> - 
+            {{ delivery.delivery_person.user.get_full_name }}
+        </span>
+        <a href="{% url 'delivery:detail' delivery.id %}" class="btn btn-sm btn-warning">Xem chi tiết</a>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<div class="row">
+    <!-- Pending Deliveries -->
+    <div class="col-lg-6 mb-4">
+        <div class="section-title">
+            <i class="bi bi-clock-history"></i>
+            Đơn hàng chờ phân công ({{ pending_deliveries.count }})
+        </div>
+        
+        {% if pending_deliveries %}
+            {% for delivery in pending_deliveries %}
+            <div class="delivery-card">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h6 class="mb-1">
+                            <i class="bi bi-receipt"></i> {{ delivery.order.order_number }}
+                        </h6>
+                        <p class="mb-1 small text-muted">
+                            <i class="bi bi-person"></i> {{ delivery.recipient_name }}
+                        </p>
+                        <p class="mb-1 small text-muted">
+                            <i class="bi bi-geo-alt"></i> {{ delivery.delivery_address|truncatewords:10 }}
+                        </p>
+                        <p class="mb-0 small text-muted">
+                            <i class="bi bi-clock"></i> {{ delivery.created_at|date:"M d, H:i" }}
+                        </p>
+                    </div>
+                    <div class="text-end">
+                        <span class="status-badge status-{{ delivery.status }}">
+                            {{ delivery.get_status_display }}
+                        </span>
+                        <div class="mt-2">
+                            <a href="{% url 'delivery:assign' delivery.id %}" class="btn btn-assign">
+                                <i class="bi bi-person-plus"></i> Phân công
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+            <a href="{% url 'delivery:list' %}?status=pending" class="btn btn-outline-primary w-100">
+                Xem tất cả
+            </a>
+        {% else %}
+            <p class="text-muted text-center py-4">Không có đơn hàng chờ phân công</p>
+        {% endif %}
+    </div>
+    
+    <!-- Active Deliveries -->
+    <div class="col-lg-6 mb-4">
+        <div class="section-title">
+            <i class="bi bi-truck"></i>
+            Đơn hàng đang giao ({{ active_deliveries.count }})
+        </div>
+        
+        {% if active_deliveries %}
+            {% for delivery in active_deliveries %}
+            <div class="delivery-card">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h6 class="mb-1">
+                            <i class="bi bi-receipt"></i> {{ delivery.order.order_number }}
+                        </h6>
+                        <p class="mb-1 small">
+                            <i class="bi bi-person-badge"></i> 
+                            <strong>{{ delivery.delivery_person.user.get_full_name }}</strong>
+                        </p>
+                        <p class="mb-1 small text-muted">
+                            <i class="bi bi-telephone"></i> {{ delivery.delivery_person.phone }}
+                        </p>
+                        <p class="mb-0 small text-muted">
+                            <i class="bi bi-geo-alt"></i> {{ delivery.delivery_address|truncatewords:10 }}
+                        </p>
+                    </div>
+                    <div class="text-end">
+                        <span class="status-badge status-{{ delivery.status }}">
+                            {{ delivery.get_status_display }}
+                        </span>
+                        <div class="mt-2">
+                            <a href="{% url 'delivery:detail' delivery.id %}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-eye"></i> Chi tiết
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+            <a href="{% url 'delivery:list' %}?status=in_transit" class="btn btn-outline-primary w-100">
+                Xem tất cả
+            </a>
+        {% else %}
+            <p class="text-muted text-center py-4">Không có đơn hàng đang giao</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Delivery Persons -->
+<div class="row">
+    <div class="col-12">
+        <div class="section-title">
+            <i class="bi bi-people"></i>
+            Nhân viên giao hàng ({{ delivery_persons.count }})
+        </div>
+    </div>
+    
+    {% for person in delivery_persons %}
+    <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
+        <div class="person-card">
+            <div class="d-flex align-items-center mb-2">
+                <div class="person-avatar me-3">
+                    {{ person.user.first_name.0|default:person.user.username.0|upper }}
+                </div>
+                <div>
+                    <h6 class="mb-0">{{ person.user.get_full_name|default:person.user.username }}</h6>
+                    <small class="text-muted">{{ person.phone }}</small>
+                </div>
+            </div>
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <small class="text-muted">Đang giao:</small>
+                    <strong class="d-block">{{ person.active_deliveries }}</strong>
+                </div>
+                <div>
+                    <small class="text-muted">Đánh giá:</small>
+                    <strong class="d-block">⭐ {{ person.rating }}</strong>
+                </div>
+                <div>
+                    <small class="text-muted">Tỷ lệ TC:</small>
+                    <strong class="d-block">{{ person.success_rate|floatformat:0 }}%</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <p class="text-muted text-center py-4">Chưa có nhân viên giao hàng</p>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Quick Actions -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="d-flex gap-2 flex-wrap">
+            <a href="{% url 'delivery:list' %}" class="btn btn-outline-primary">
+                <i class="bi bi-list"></i> Tất cả đơn hàng
+            </a>
+            <a href="{% url 'delivery:statistics' %}" class="btn btn-outline-success">
+                <i class="bi bi-graph-up"></i> Thống kê
+            </a>
+            <a href="{% url 'admin:delivery_deliveryperson_changelist' %}" class="btn btn-outline-info">
+                <i class="bi bi-person-plus"></i> Quản lý nhân viên
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,113 @@
+{% extends 'admin_dashboard/base.html' %}
+
+{% block title %}Xác Nhận Xóa Mã Giảm Giá{% endblock %}
+
+{% block page_title %}Xác Nhận Xóa Mã Giảm Giá{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'reports:discount_detail' discount.id %}" class="btn btn-sm btn-secondary shadow-sm">
+    <i class="fas fa-arrow-left fa-sm"></i> Quay Lại
+</a>
+{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-lg border-danger">
+            <div class="card-header bg-danger text-white py-3">
+                <h5 class="m-0 font-weight-bold">
+                    <i class="fas fa-exclamation-triangle"></i> Xác Nhận Xóa Mã Giảm Giá
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-danger">
+                    <h5 class="alert-heading">
+                        <i class="fas fa-exclamation-circle"></i> Cảnh báo!
+                    </h5>
+                    <p class="mb-0">
+                        Bạn có chắc chắn muốn xóa mã giảm giá này? Hành động này <strong>không thể hoàn tác</strong>!
+                    </p>
+                </div>
+                
+                <div class="card mb-4">
+                    <div class="card-header bg-light">
+                        <h6 class="m-0 font-weight-bold text-primary">Thông Tin Mã Giảm Giá Sẽ Bị Xóa</h6>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-borderless mb-0">
+                            <tbody>
+                                <tr>
+                                    <td width="30%" class="font-weight-bold">Mã Code:</td>
+                                    <td>
+                                        <span class="badge badge-primary badge-lg" style="font-size: 1.2rem; padding: 0.5rem 1rem;">
+                                            {{ discount.code }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="font-weight-bold">Mô Tả:</td>
+                                    <td>{{ discount.description|default:"<em class='text-muted'>Không có mô tả</em>"|safe }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="font-weight-bold">Giá Trị Giảm:</td>
+                                    <td>
+                                        <span class="h5 text-success">
+                                            {% if discount.discount_type == 'percentage' %}
+                                            {{ discount.value }}%
+                                            {% else %}
+                                            {{ discount.value|floatformat:0 }}đ
+                                            {% endif %}
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="font-weight-bold">Đã Sử Dụng:</td>
+                                    <td>
+                                        <span class="badge badge-secondary">{{ discount.used_count }} lần</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="font-weight-bold">Thời Hạn:</td>
+                                    <td>
+                                        {{ discount.valid_from|date:"d/m/Y" }} - {{ discount.valid_to|date:"d/m/Y" }}
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                {% if discount.used_count > 0 %}
+                <div class="alert alert-warning">
+                    <i class="fas fa-info-circle"></i>
+                    <strong>Lưu ý:</strong> Mã giảm giá này đã được sử dụng <strong>{{ discount.used_count }} lần</strong>. 
+                    Việc xóa sẽ không ảnh hưởng đến các đơn hàng đã sử dụng mã này trước đó.
+                </div>
+                {% endif %}
+                
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="text-right">
+                        <a href="{% url 'reports:discount_detail' discount.id %}" class="btn btn-secondary btn-lg">
+                            <i class="fas fa-times"></i> Hủy Bỏ
+                        </a>
+                        <button type="submit" class="btn btn-danger btn-lg">
+                            <i class="fas fa-trash"></i> Xác Nhận Xóa
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+<style>
+.badge-lg {
+    font-size: 1rem;
+    padding: 0.4rem 0.8rem;
+}
+</style>
+

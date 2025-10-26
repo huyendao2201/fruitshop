@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 10px 10px 0 0;
+        }
+        .content {
+            background: #ffffff;
+            padding: 30px;
+            border: 1px solid #e0e0e0;
+        }
+        .info-box {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .info-row:last-child {
+            border-bottom: none;
+        }
+        .label {
+            font-weight: bold;
+            color: #555;
+        }
+        .value {
+            color: #333;
+        }
+        .btn {
+            display: inline-block;
+            padding: 12px 30px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .btn:hover {
+            background: #764ba2;
+        }
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        .items-table th,
+        .items-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .items-table th {
+            background: #f8f9fa;
+            font-weight: bold;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #777;
+            font-size: 14px;
+            border-radius: 0 0 10px 10px;
+            background: #f8f9fa;
+        }
+        .highlight {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border-left: 4px solid #ffc107;
+        }
+        .priority {
+            display: inline-block;
+            padding: 5px 10px;
+            background: #dc3545;
+            color: white;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🚚 Đơn Hàng Mới Được Phân Công</h1>
+        <p>Fresh Fruit Shop - Delivery Management</p>
+    </div>
+
+    <div class="content">
+        <p>Xin chào <strong>{{ delivery_person.user.get_full_name }}</strong>,</p>
+        
+        <p>Bạn vừa được phân công giao đơn hàng <strong>#{{ delivery.order.order_number }}</strong>.</p>
+
+        {% if delivery.is_delayed %}
+        <div class="highlight">
+            <span class="priority">⚠️ ƯU TIÊN CAO</span>
+            <p style="margin: 10px 0 0 0;">Đơn hàng này đã trễ hạn. Vui lòng ưu tiên giao nhanh nhất có thể!</p>
+        </div>
+        {% endif %}
+
+        <div class="info-box">
+            <h3 style="margin-top: 0;">📋 Thông Tin Đơn Hàng</h3>
+            <div class="info-row">
+                <span class="label">Mã đơn hàng:</span>
+                <span class="value">#{{ delivery.order.order_number }}</span>
+            </div>
+            <div class="info-row">
+                <span class="label">Trạng thái:</span>
+                <span class="value">{{ delivery.get_status_display }}</span>
+            </div>
+            <div class="info-row">
+                <span class="label">Tổng giá trị:</span>
+                <span class="value" style="color: #28a745; font-weight: bold;">${{ delivery.order.total_amount }}</span>
+            </div>
+            <div class="info-row">
+                <span class="label">Phương thức thanh toán:</span>
+                <span class="value">{{ delivery.order.get_payment_method_display }}</span>
+            </div>
+            {% if delivery.estimated_delivery_time %}
+            <div class="info-row">
+                <span class="label">Dự kiến giao:</span>
+                <span class="value">{{ delivery.estimated_delivery_time|date:"d/m/Y H:i" }}</span>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="info-box">
+            <h3 style="margin-top: 0;">👤 Thông Tin Người Nhận</h3>
+            <div class="info-row">
+                <span class="label">Tên:</span>
+                <span class="value">{{ delivery.recipient_name }}</span>
+            </div>
+            <div class="info-row">
+                <span class="label">Số điện thoại:</span>
+                <span class="value">{{ delivery.recipient_phone }}</span>
+            </div>
+        </div>
+
+        <div class="info-box">
+            <h3 style="margin-top: 0;">📍 Địa Chỉ Giao Hàng</h3>
+            <p style="margin: 0; font-size: 15px;">{{ delivery.delivery_address }}</p>
+        </div>
+
+        <div class="info-box">
+            <h3 style="margin-top: 0;">📦 Sản Phẩm Cần Giao</h3>
+            <table class="items-table">
+                <thead>
+                    <tr>
+                        <th>Sản phẩm</th>
+                        <th>Số lượng</th>
+                        <th>Đơn giá</th>
+                        <th>Thành tiền</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in delivery.order.items.all %}
+                    <tr>
+                        <td>{{ item.product.name }}</td>
+                        <td>{{ item.quantity }}</td>
+                        <td>${{ item.price }}</td>
+                        <td><strong>${{ item.get_total_price }}</strong></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if delivery.notes %}
+        <div class="info-box">
+            <h3 style="margin-top: 0;">📝 Ghi Chú Đặc Biệt</h3>
+            <p style="margin: 0;">{{ delivery.notes }}</p>
+        </div>
+        {% endif %}
+
+        <div style="text-align: center;">
+            <a href="{{ site_url }}/delivery/dashboard/" class="btn">
+                Xem Chi Tiết Đơn Hàng
+            </a>
+        </div>
+
+        <div style="background: #e7f3ff; padding: 15px; border-radius: 5px; margin-top: 20px;">
+            <h4 style="margin-top: 0; color: #0066cc;">💡 Lưu Ý Quan Trọng:</h4>
+            <ul style="margin: 0; padding-left: 20px;">
+                <li>Vui lòng liên hệ người nhận trước khi giao hàng</li>
+                <li>Kiểm tra kỹ sản phẩm trước khi xuất kho</li>
+                <li>Cập nhật trạng thái giao hàng thường xuyên</li>
+                <li>Chụp ảnh xác nhận khi giao hàng thành công</li>
+                {% if delivery.order.payment_method == 'cod' %}
+                <li style="color: #dc3545; font-weight: bold;">⚠️ Thu tiền mặt: ${{ delivery.order.total_amount }}</li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p><strong>Fresh Fruit Shop</strong></p>
+        <p>Email: support@fruitshop.com | Hotline: 1900 xxxx</p>
+        <p style="font-size: 12px; color: #999;">
+            Email này được gửi tự động. Vui lòng không trả lời email này.
+        </p>
+    </div>
+</body>
+</html>
+
+
+
+

@@ -1,0 +1,343 @@
+{% extends 'admin_dashboard/base.html' %}
+{% load static %}
+
+{% block title %}Nhân Viên Giao Hàng{% endblock %}
+
+{% block page_title %}Nhân Viên Giao Hàng{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'reports:delivery_list' %}" class="btn btn-outline-primary btn-sm">
+    <i class="fas fa-truck"></i> Danh Sách Giao Hàng
+</a>
+{% endblock %}
+
+{% block content %}
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-xl-4 col-md-6 mb-4">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            Tổng Nhân Viên
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_count }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-users fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-4 col-md-6 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            Đang Hoạt Động
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ active_count }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-4 col-md-6 mb-4">
+        <div class="card border-left-secondary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-secondary text-uppercase mb-1">
+                            Không Hoạt Động
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ inactive_count }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-pause-circle fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">
+            <i class="fas fa-filter"></i> Bộ Lọc
+        </h6>
+    </div>
+    <div class="card-body">
+        <form method="get">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Tìm kiếm</label>
+                    <input type="text" name="search" class="form-control" 
+                           placeholder="Tên, Email, SĐT..." 
+                           value="{{ request.GET.search }}">
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">Trạng thái</label>
+                    <select name="is_active" class="form-control">
+                        <option value="">Tất cả</option>
+                        <option value="true" {% if request.GET.is_active == 'true' %}selected{% endif %}>
+                            Đang hoạt động
+                        </option>
+                        <option value="false" {% if request.GET.is_active == 'false' %}selected{% endif %}>
+                            Không hoạt động
+                        </option>
+                    </select>
+                </div>
+                <div class="col-md-2 mb-3 d-flex align-items-end">
+                    <div class="w-100">
+                        <button type="submit" class="btn btn-primary btn-block mb-2">
+                            <i class="fas fa-search"></i> Lọc
+                        </button>
+                        <a href="{% url 'reports:delivery_person_list' %}" class="btn btn-secondary btn-block">
+                            <i class="fas fa-redo"></i> Reset
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Delivery Persons Table -->
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">
+            <i class="fas fa-people-carry"></i> Danh Sách Nhân Viên Giao Hàng
+        </h6>
+    </div>
+    <div class="card-body">
+        {% if delivery_persons %}
+        <div class="table-responsive">
+            <table class="table table-bordered" width="100%" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nhân Viên</th>
+                        <th>Liên Hệ</th>
+                        <th>Phương Tiện</th>
+                        <th>Đang Giao</th>
+                        <th>Tổng Đơn</th>
+                        <th>Thành Công</th>
+                        <th>Tỷ Lệ TC</th>
+                        <th>Đánh Giá</th>
+                        <th>Trạng Thái</th>
+                        <th>Thao Tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for person in delivery_persons %}
+                    <tr {% if not person.is_active %}class="table-secondary"{% endif %}>
+                        <td>#{{ person.id }}</td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-circle mr-2">
+                                    {{ person.user.get_full_name|first|upper }}
+                                </div>
+                                <div>
+                                    <strong>{{ person.user.get_full_name|default:person.user.username }}</strong>
+                                    <br>
+                                    <small class="text-muted">@{{ person.user.username }}</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div>
+                                <i class="fas fa-phone"></i> {{ person.phone }}
+                            </div>
+                            {% if person.user.email %}
+                            <small class="text-muted">
+                                <i class="fas fa-envelope"></i> {{ person.user.email|truncatechars:25 }}
+                            </small>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if person.vehicle_type == 'motorbike' %}
+                                <span class="badge badge-info">
+                                    <i class="fas fa-motorcycle"></i> Xe Máy
+                                </span>
+                            {% elif person.vehicle_type == 'bicycle' %}
+                                <span class="badge badge-success">
+                                    <i class="fas fa-bicycle"></i> Xe Đạp
+                                </span>
+                            {% elif person.vehicle_type == 'car' %}
+                                <span class="badge badge-primary">
+                                    <i class="fas fa-car"></i> Ô Tô
+                                </span>
+                            {% elif person.vehicle_type == 'truck' %}
+                                <span class="badge badge-dark">
+                                    <i class="fas fa-truck"></i> Xe Tải
+                                </span>
+                            {% else %}
+                                <span class="badge badge-secondary">{{ person.get_vehicle_type_display }}</span>
+                            {% endif %}
+                            {% if person.vehicle_number %}
+                            <br><small class="text-muted">{{ person.vehicle_number }}</small>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            {% if person.current_deliveries_count > 0 %}
+                                <span class="badge badge-warning badge-lg">{{ person.current_deliveries_count }}</span>
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            <strong>{{ person.total_deliveries }}</strong>
+                        </td>
+                        <td class="text-center">
+                            <span class="text-success font-weight-bold">{{ person.successful_deliveries }}</span>
+                        </td>
+                        <td class="text-center">
+                            {% if person.total_deliveries > 0 %}
+                                {% if person.success_rate_calc >= 90 %}
+                                    <span class="badge badge-success">{{ person.success_rate_calc|floatformat:1 }}%</span>
+                                {% elif person.success_rate_calc >= 70 %}
+                                    <span class="badge badge-info">{{ person.success_rate_calc|floatformat:1 }}%</span>
+                                {% elif person.success_rate_calc >= 50 %}
+                                    <span class="badge badge-warning">{{ person.success_rate_calc|floatformat:1 }}%</span>
+                                {% else %}
+                                    <span class="badge badge-danger">{{ person.success_rate_calc|floatformat:1 }}%</span>
+                                {% endif %}
+                            {% else %}
+                                <span class="text-muted">N/A</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            {% if person.rating %}
+                                <div class="rating">
+                                    <span class="text-warning">
+                                        {% for i in "12345" %}
+                                            {% if forloop.counter <= person.rating %}
+                                                <i class="fas fa-star"></i>
+                                            {% else %}
+                                                <i class="far fa-star"></i>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </span>
+                                    <br>
+                                    <small class="text-muted">{{ person.rating|floatformat:1 }}</small>
+                                </div>
+                            {% else %}
+                                <span class="text-muted">Chưa có</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if person.is_active %}
+                                <span class="badge badge-success">
+                                    <i class="fas fa-check-circle"></i> Hoạt động
+                                </span>
+                            {% else %}
+                                <span class="badge badge-secondary">
+                                    <i class="fas fa-pause-circle"></i> Tạm ngưng
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'reports:delivery_person_detail' person.id %}" 
+                               class="btn btn-sm btn-primary" 
+                               title="Chi tiết">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if is_paginated %}
+        <div class="d-flex justify-content-center mt-4">
+            <nav aria-label="Page navigation">
+                <ul class="pagination">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.is_active %}&is_active={{ request.GET.is_active }}{% endif %}">
+                            <i class="fas fa-angle-double-left"></i>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.is_active %}&is_active={{ request.GET.is_active }}{% endif %}">
+                            <i class="fas fa-angle-left"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    <li class="page-item active">
+                        <span class="page-link">
+                            {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
+                        </span>
+                    </li>
+
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.is_active %}&is_active={{ request.GET.is_active }}{% endif %}">
+                            <i class="fas fa-angle-right"></i>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.is_active %}&is_active={{ request.GET.is_active }}{% endif %}">
+                            <i class="fas fa-angle-double-right"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-people-carry fa-3x text-gray-300 mb-3"></i>
+            <p class="text-muted">Không tìm thấy nhân viên giao hàng nào</p>
+            <a href="{% url 'reports:delivery_person_list' %}" class="btn btn-outline-primary">
+                <i class="fas fa-redo"></i> Reset Filters
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+.avatar-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+    color: white;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 18px;
+}
+
+.rating i {
+    font-size: 12px;
+}
+
+.table td {
+    vertical-align: middle;
+}
+
+.badge-lg {
+    font-size: 1rem;
+    padding: 0.5rem 0.75rem;
+}
+</style>
+{% endblock %}
+

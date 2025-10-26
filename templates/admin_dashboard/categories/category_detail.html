@@ -1,0 +1,180 @@
+{% extends 'admin_dashboard/base.html' %}
+
+{% block title %}Chi Tiết Danh Mục - {{ category.name }}{% endblock %}
+
+{% block page_title %}Chi Tiết Danh Mục{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'reports:category_list' %}" class="btn btn-sm btn-secondary shadow-sm">
+    <i class="fas fa-arrow-left fa-sm"></i> Quay Lại
+</a>
+<a href="{% url 'reports:category_edit' category.id %}" class="btn btn-sm btn-warning shadow-sm">
+    <i class="fas fa-edit fa-sm"></i> Sửa
+</a>
+<a href="{% url 'reports:category_delete' category.id %}" class="btn btn-sm btn-danger shadow-sm" onclick="return confirm('Bạn có chắc muốn xóa danh mục này?')">
+    <i class="fas fa-trash fa-sm"></i> Xóa
+</a>
+{% endblock %}
+
+{% block content %}
+
+<div class="row">
+    <!-- Left Column -->
+    <div class="col-lg-4">
+        <!-- Category Info Card -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Thông Tin Danh Mục</h6>
+            </div>
+            <div class="card-body text-center">
+                {% if category.image %}
+                <img src="{{ category.image.url }}" alt="{{ category.name }}" class="img-fluid mb-3" style="max-height: 200px; border-radius: 10px;">
+                {% else %}
+                <div class="mb-3" style="height: 150px; background: #f0f0f0; display: flex; align-items: center; justify-content: center; border-radius: 10px;">
+                    <i class="fas fa-folder fa-5x text-gray-400"></i>
+                </div>
+                {% endif %}
+                
+                <h4 class="font-weight-bold">{{ category.name }}</h4>
+                
+                {% if category.is_active %}
+                <span class="badge badge-success badge-lg mb-3">Hoạt Động</span>
+                {% else %}
+                <span class="badge badge-secondary badge-lg mb-3">Ngừng Hoạt Động</span>
+                {% endif %}
+                
+                {% if category.description %}
+                <hr>
+                <p class="text-muted">{{ category.description }}</p>
+                {% endif %}
+                
+                <hr>
+                
+                <div class="text-left">
+                    <p class="mb-2"><strong>ID:</strong> {{ category.id }}</p>
+                    <p class="mb-2"><strong>Ngày tạo:</strong> {{ category.created_at|date:"d/m/Y H:i" }}</p>
+                    <p class="mb-0"><strong>Cập nhật:</strong> {{ category.updated_at|date:"d/m/Y H:i" }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Statistics Card -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Thống Kê</h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="font-weight-bold">Tổng Sản Phẩm:</span>
+                        <span class="h5 mb-0 text-primary">{{ total_products }}</span>
+                    </div>
+                    <div class="progress">
+                        <div class="progress-bar bg-primary" role="progressbar" style="width: 100%"></div>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="font-weight-bold">Đang Hoạt Động:</span>
+                        <span class="h5 mb-0 text-success">{{ active_products }}</span>
+                    </div>
+                    <div class="progress">
+                        <div class="progress-bar bg-success" role="progressbar" style="width: {% if total_products > 0 %}{{ active_products|floatformat:0 }}{% else %}0{% endif %}%"></div>
+                    </div>
+                </div>
+                
+                <div class="mb-0">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="font-weight-bold">Doanh Thu:</span>
+                        <span class="h5 mb-0 text-info">{{ total_revenue|floatformat:0 }}đ</span>
+                    </div>
+                    <div class="progress">
+                        <div class="progress-bar bg-info" role="progressbar" style="width: 100%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Right Column -->
+    <div class="col-lg-8">
+        <!-- Products -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold text-primary">Sản Phẩm Trong Danh Mục</h6>
+                <a href="{% url 'reports:product_list' %}?category={{ category.id }}" class="btn btn-sm btn-primary">
+                    Xem Tất Cả
+                </a>
+            </div>
+            <div class="card-body">
+                {% if products %}
+                <div class="row">
+                    {% for product in products %}
+                    <div class="col-md-6 col-lg-4 mb-3">
+                        <div class="card h-100">
+                            {% if product.get_primary_image %}
+                            <img src="{{ product.get_primary_image.url }}" class="card-img-top" alt="{{ product.name }}" style="height: 150px; object-fit: cover;">
+                            {% else %}
+                            <div style="height: 150px; background: #f0f0f0; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-image fa-3x text-gray-400"></i>
+                            </div>
+                            {% endif %}
+                            <div class="card-body p-2">
+                                <h6 class="card-title mb-1">
+                                    <a href="{% url 'reports:product_detail' product.id %}">{{ product.name|truncatewords:5 }}</a>
+                                </h6>
+                                <p class="card-text mb-1">
+                                    <strong class="text-primary">{{ product.price|floatformat:0 }}đ</strong>
+                                </p>
+                                <p class="card-text mb-0">
+                                    <small class="text-muted">Tồn: {{ product.stock }}</small>
+                                    {% if product.is_active %}
+                                    <span class="badge badge-success badge-sm">Active</span>
+                                    {% else %}
+                                    <span class="badge badge-secondary badge-sm">Inactive</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-center text-muted py-4">
+                    <i class="fas fa-inbox fa-3x mb-3 d-block"></i>
+                    Chưa có sản phẩm nào trong danh mục này
+                </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .badge-lg {
+        font-size: 1rem;
+        padding: 0.5rem 1rem;
+    }
+</style>
+
+{% endblock %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

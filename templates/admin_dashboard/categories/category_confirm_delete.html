@@ -1,0 +1,81 @@
+{% extends 'admin_dashboard/base.html' %}
+
+{% block title %}Xóa Danh Mục{% endblock %}
+
+{% block page_title %}Xác Nhận Xóa Danh Mục{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'reports:category_list' %}" class="btn btn-sm btn-secondary shadow-sm">
+    <i class="fas fa-arrow-left fa-sm"></i> Quay Lại
+</a>
+{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="card shadow mb-4 border-danger">
+            <div class="card-header py-3 bg-danger">
+                <h6 class="m-0 font-weight-bold text-white">
+                    <i class="fas fa-exclamation-triangle"></i> Cảnh Báo
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    {% if object.image %}
+                    <img src="{{ object.image.url }}" alt="{{ object.name }}" style="max-width: 150px; max-height: 150px; object-fit: cover; border-radius: 10px;">
+                    {% else %}
+                    <i class="fas fa-folder fa-5x text-gray-400"></i>
+                    {% endif %}
+                </div>
+                
+                <h4 class="text-center mb-4">{{ object.name }}</h4>
+                
+                <div class="alert alert-danger">
+                    <strong>Bạn có chắc chắn muốn xóa danh mục này?</strong>
+                    <p class="mb-0 mt-2">Hành động này không thể hoàn tác!</p>
+                </div>
+                
+                <div class="alert alert-warning">
+                    <strong>Lưu ý:</strong>
+                    <ul class="mb-0">
+                        <li>Danh mục có <strong>{{ object.products.count }} sản phẩm</strong></li>
+                        <li>Các sản phẩm sẽ không bị xóa nhưng sẽ mất danh mục</li>
+                        <li>Bạn nên chuyển sản phẩm sang danh mục khác trước khi xóa</li>
+                    </ul>
+                </div>
+                
+                <form method="post" class="text-center">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger btn-lg">
+                        <i class="fas fa-trash"></i> Xác Nhận Xóa
+                    </button>
+                    <a href="{% url 'reports:category_list' %}" class="btn btn-secondary btn-lg">
+                        <i class="fas fa-times"></i> Hủy Bỏ
+                    </a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

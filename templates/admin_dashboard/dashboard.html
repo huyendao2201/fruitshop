@@ -1,0 +1,844 @@
+{% extends 'admin_dashboard/base.html' %}
+
+{% block title %}Tổng Quan{% endblock %}
+
+{% block page_title %}Bảng Điều Khiển{% endblock %}
+
+{% block page_actions %}
+<div class="dropdown d-none d-sm-inline-block">
+    <button class="btn btn-sm btn-primary shadow-sm dropdown-toggle" type="button" id="exportDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        <i class="fas fa-download fa-sm text-white-50"></i> Tải Báo Cáo
+    </button>
+    <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in" aria-labelledby="exportDropdown">
+        <div class="dropdown-header">Xuất báo cáo:</div>
+        <a class="dropdown-item" href="{% url 'reports:export_report' %}?type=orders">
+            <i class="fas fa-shopping-cart fa-sm fa-fw mr-2 text-gray-400"></i>
+            Đơn Hàng
+        </a>
+        <a class="dropdown-item" href="{% url 'reports:export_report' %}?type=products">
+            <i class="fas fa-apple-alt fa-sm fa-fw mr-2 text-gray-400"></i>
+            Sản Phẩm
+        </a>
+        <a class="dropdown-item" href="{% url 'reports:export_report' %}?type=customers">
+            <i class="fas fa-users fa-sm fa-fw mr-2 text-gray-400"></i>
+            Khách Hàng
+        </a>
+        <a class="dropdown-item" href="{% url 'reports:export_report' %}?type=revenue">
+            <i class="fas fa-chart-line fa-sm fa-fw mr-2 text-gray-400"></i>
+            Doanh Thu
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+
+<!-- Content Row - Statistics Cards -->
+<div class="row">
+
+    <!-- Earnings (Monthly) Card Example -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-primary shadow h-100 py-2 stats-card primary card-hover">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            Doanh Thu (Tháng)</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ monthly_revenue|floatformat:0|default:"0" }}đ</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Earnings (Annual) Card Example -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-success shadow h-100 py-2 stats-card success card-hover">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            Tổng Doanh Thu</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_revenue|floatformat:0|default:"0" }}đ</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-coins fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tasks Card Example -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-info shadow h-100 py-2 stats-card info card-hover">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Đơn Hàng (Tháng)
+                        </div>
+                        <div class="row no-gutters align-items-center">
+                            <div class="col-auto">
+                                <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">{{ monthly_orders|default:"0" }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pending Requests Card Example -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-warning shadow h-100 py-2 stats-card warning card-hover">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                            Khách Hàng</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_customers|default:"0" }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-users fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Content Row -->
+<div class="row">
+
+    <!-- Area Chart -->
+    <div class="col-xl-8 col-lg-7">
+        <div class="card shadow mb-4">
+            <!-- Card Header - Dropdown -->
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 class="m-0 font-weight-bold text-primary">Tổng Quan Doanh Thu</h6>
+                <div class="dropdown no-arrow">
+                    <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
+                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
+                        aria-labelledby="dropdownMenuLink">
+                        <div class="dropdown-header">Tùy chọn:</div>
+                        <a class="dropdown-item" href="#">Xem chi tiết</a>
+                        <a class="dropdown-item" href="#">Tải xuống</a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" href="#">Cài đặt</a>
+                    </div>
+                </div>
+            </div>
+            <!-- Card Body -->
+            <div class="card-body">
+                <div class="chart-area">
+                    <canvas id="myAreaChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pie Chart -->
+    <div class="col-xl-4 col-lg-5">
+        <div class="card shadow mb-4">
+            <!-- Card Header - Dropdown -->
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 class="m-0 font-weight-bold text-primary">Trạng Thái Đơn Hàng</h6>
+                <div class="dropdown no-arrow">
+                    <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink2"
+                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
+                        aria-labelledby="dropdownMenuLink2">
+                        <div class="dropdown-header">Tùy chọn:</div>
+                        <a class="dropdown-item" href="#">Xem chi tiết</a>
+                        <a class="dropdown-item" href="#">Tải xuống</a>
+                    </div>
+                </div>
+            </div>
+            <!-- Card Body -->
+            <div class="card-body">
+                <div class="chart-pie pt-4 pb-2">
+                    <canvas id="myPieChart"></canvas>
+                </div>
+                <div class="mt-4 text-center small">
+                    <span class="mr-2">
+                        <i class="fas fa-circle text-primary"></i> Chờ xác nhận
+                    </span>
+                    <span class="mr-2">
+                        <i class="fas fa-circle text-success"></i> Hoàn thành
+                    </span>
+                    <span class="mr-2">
+                        <i class="fas fa-circle text-info"></i> Đang giao
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Content Row -->
+<div class="row">
+
+    <!-- Recent Orders -->
+    <div class="col-lg-8 mb-4">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Đơn Hàng Gần Đây</h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Mã Đơn</th>
+                                <th>Khách Hàng</th>
+                                <th>Ngày Đặt</th>
+                                <th>Tổng Tiền</th>
+                                <th>Trạng Thái</th>
+                                <th>Thao Tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for order in recent_orders %}
+                            <tr>
+                                <td><a href="{% url 'admin:orders_order_change' order.id %}">#{{ order.order_number }}</a></td>
+                                <td>{{ order.user.get_full_name|default:order.user.username }}</td>
+                                <td>{{ order.created_at|date:"d/m/Y H:i" }}</td>
+                                <td class="font-weight-bold text-success">{{ order.total_amount|floatformat:0 }}đ</td>
+                                <td>
+                                    {% if order.status == 'pending' %}
+                                        <span class="badge badge-warning">Chờ xác nhận</span>
+                                    {% elif order.status == 'confirmed' %}
+                                        <span class="badge badge-info">Đã xác nhận</span>
+                                    {% elif order.status == 'processing' %}
+                                        <span class="badge badge-primary">Đang xử lý</span>
+                                    {% elif order.status == 'shipped' %}
+                                        <span class="badge badge-info">Đã giao vận</span>
+                                    {% elif order.status == 'delivered' %}
+                                        <span class="badge badge-success">Đã giao hàng</span>
+                                    {% elif order.status == 'completed' %}
+                                        <span class="badge badge-success">Hoàn thành</span>
+                                    {% elif order.status == 'canceled' %}
+                                        <span class="badge badge-danger">Đã hủy</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{% url 'admin:orders_order_change' order.id %}" class="btn btn-sm btn-primary">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center text-muted">Chưa có đơn hàng nào</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <a href="{% url 'admin:orders_order_changelist' %}" class="btn btn-primary btn-sm mt-3">
+                    Xem Tất Cả Đơn Hàng <i class="fas fa-arrow-right ml-1"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Best Selling Products -->
+    <div class="col-lg-4 mb-4">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Sản Phẩm Bán Chạy</h6>
+            </div>
+            <div class="card-body">
+                {% for product in best_selling_products %}
+                <div class="d-flex align-items-center mb-3 pb-3 border-bottom">
+                    <div class="mr-3">
+                        {% if product.get_primary_image %}
+                            <img src="{{ product.get_primary_image.url }}" alt="{{ product.name }}" class="rounded" style="width: 50px; height: 50px; object-fit: cover;">
+                        {% else %}
+                            <div class="bg-light rounded d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                                <i class="fas fa-image text-muted"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="flex-grow-1">
+                        <h6 class="mb-0">{{ product.name }}</h6>
+                        <small class="text-muted">Đã bán: {{ product.total_sold|default:"0" }} sản phẩm</small>
+                    </div>
+                    <div>
+                        <span class="badge badge-success-soft">{{ product.price|floatformat:0 }}đ</span>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-center text-muted">Chưa có dữ liệu</p>
+                {% endfor %}
+                <a href="{% url 'admin:products_product_changelist' %}" class="btn btn-primary btn-sm btn-block mt-3">
+                    Xem Tất Cả Sản Phẩm
+                </a>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Additional Stats Row -->
+<div class="row">
+    
+    <!-- Low Stock Alert -->
+    <div class="col-lg-6 mb-4">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 class="m-0 font-weight-bold text-warning">
+                    <i class="fas fa-exclamation-triangle"></i> Cảnh Báo Tồn Kho Thấp
+                </h6>
+            </div>
+            <div class="card-body">
+                {% if low_stock_products %}
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Sản phẩm</th>
+                                    <th class="text-center">Tồn kho</th>
+                                    <th class="text-right">Giá</th>
+                                    <th class="text-center">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for product in low_stock_products %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ product.name }}</strong>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge badge-warning">{{ product.stock }}</span>
+                                    </td>
+                                    <td class="text-right">{{ product.price|floatformat:0 }}đ</td>
+                                    <td class="text-center">
+                                        <a href="{% url 'admin:products_product_change' product.id %}" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-center text-muted mb-0">
+                        <i class="fas fa-check-circle text-success"></i> Tất cả sản phẩm đều có đủ hàng
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Reviews -->
+    <div class="col-lg-6 mb-4">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 class="m-0 font-weight-bold text-info">
+                    <i class="fas fa-star"></i> Đánh Giá Sản Phẩm
+                </h6>
+                <span class="badge badge-info">Trung bình: {{ average_rating }}/5</span>
+            </div>
+            <div class="card-body">
+                {% if recent_reviews %}
+                    {% for review in recent_reviews %}
+                    <div class="mb-3 pb-3 {% if not forloop.last %}border-bottom{% endif %}">
+                        <div class="d-flex justify-content-between align-items-start mb-1">
+                            <div>
+                                <strong>{{ review.user.get_full_name|default:review.user.username }}</strong>
+                                <small class="text-muted ml-2">{{ review.created_at|date:"d/m/Y" }}</small>
+                            </div>
+                            <div>
+                                {% for i in "12345" %}
+                                    {% if forloop.counter <= review.rating %}
+                                        <i class="fas fa-star text-warning"></i>
+                                    {% else %}
+                                        <i class="far fa-star text-warning"></i>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <small class="text-muted">{{ review.product.name }}</small>
+                        <p class="mb-0 mt-1"><small>{{ review.comment|truncatewords:15 }}</small></p>
+                    </div>
+                    {% endfor %}
+                    <a href="{% url 'admin:products_review_changelist' %}" class="btn btn-info btn-sm btn-block mt-2">
+                        Xem Tất Cả Đánh Giá Sản Phẩm
+                    </a>
+                {% else %}
+                    <p class="text-center text-muted mb-0">Chưa có đánh giá nào</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Shop Reviews Row -->
+<div class="row">
+    
+    <!-- Shop Review Statistics -->
+    <div class="col-lg-6 mb-4">
+        <div class="card shadow mb-4 border-left-success">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 class="m-0 font-weight-bold text-success">
+                    <i class="fas fa-store"></i> Đánh Giá Cửa Hàng
+                </h6>
+                <div>
+                    <span class="badge badge-success">{{ shop_average_rating|floatformat:1 }}/5 ⭐</span>
+                    <span class="badge badge-primary">{{ total_shop_reviews }} đánh giá</span>
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- Statistics -->
+                <div class="row mb-4">
+                    <div class="col-4 text-center border-right">
+                        <h4 class="font-weight-bold text-success mb-0">{{ approved_shop_reviews }}</h4>
+                        <small class="text-muted">
+                            <i class="fas fa-check-circle"></i> Đã duyệt
+                        </small>
+                    </div>
+                    <div class="col-4 text-center border-right">
+                        <h4 class="font-weight-bold text-warning mb-0">{{ pending_shop_reviews }}</h4>
+                        <small class="text-muted">
+                            <i class="fas fa-clock"></i> Chờ duyệt
+                        </small>
+                    </div>
+                    <div class="col-4 text-center">
+                        <h4 class="font-weight-bold text-info mb-0">{{ featured_shop_reviews }}</h4>
+                        <small class="text-muted">
+                            <i class="fas fa-star"></i> Nổi bật
+                        </small>
+                    </div>
+                </div>
+                
+                <!-- Recent Shop Reviews -->
+                {% if recent_shop_reviews %}
+                    {% for review in recent_shop_reviews %}
+                    <div class="mb-3 pb-3 {% if not forloop.last %}border-bottom{% endif %}">
+                        <div class="d-flex justify-content-between align-items-start mb-1">
+                            <div>
+                                <strong>{{ review.user.get_full_name|default:review.user.username }}</strong>
+                                <small class="text-muted ml-2">{{ review.created_at|date:"d/m/Y" }}</small>
+                            </div>
+                            <div>
+                                {% for i in "12345" %}
+                                    {% if forloop.counter <= review.rating %}
+                                        <i class="fas fa-star text-warning"></i>
+                                    {% else %}
+                                        <i class="far fa-star text-warning"></i>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <strong class="text-primary">{{ review.title }}</strong>
+                            <div>
+                                {% if review.is_approved %}
+                                    <span class="badge badge-success badge-sm">Đã duyệt</span>
+                                {% else %}
+                                    <span class="badge badge-warning badge-sm">Chờ</span>
+                                {% endif %}
+                                {% if review.is_featured %}
+                                    <span class="badge badge-info badge-sm">⭐</span>
+                                {% endif %}
+                                {% if review.is_verified_purchase %}
+                                    <span class="badge badge-success badge-sm">✓</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <p class="mb-0 mt-1"><small class="text-muted">{{ review.comment|truncatewords:12 }}</small></p>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-center text-muted mb-0">Chưa có đánh giá cửa hàng nào</p>
+                {% endif %}
+                
+                <a href="{% url 'reports:shop_review_list' %}" class="btn btn-success btn-sm btn-block mt-3">
+                    <i class="fas fa-eye"></i> Quản Lý Đánh Giá Cửa Hàng
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Actions for Shop Reviews -->
+    <div class="col-lg-6 mb-4">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-tasks"></i> Thao Tác Nhanh
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="list-group">
+                    <a href="{% url 'reports:shop_review_list' %}?approval=pending" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fas fa-clock text-warning mr-2"></i>
+                            <strong>Đánh giá chờ duyệt</strong>
+                        </div>
+                        <span class="badge badge-warning badge-pill">{{ pending_shop_reviews }}</span>
+                    </a>
+                    
+                    <a href="{% url 'reports:shop_review_list' %}?approval=approved" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fas fa-check-circle text-success mr-2"></i>
+                            <strong>Đánh giá đã duyệt</strong>
+                        </div>
+                        <span class="badge badge-success badge-pill">{{ approved_shop_reviews }}</span>
+                    </a>
+                    
+                    <a href="{% url 'reports:shop_review_list' %}?featured=yes" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fas fa-star text-info mr-2"></i>
+                            <strong>Đánh giá nổi bật</strong>
+                        </div>
+                        <span class="badge badge-info badge-pill">{{ featured_shop_reviews }}</span>
+                    </a>
+                    
+                    <a href="{% url 'reports:shop_review_list' %}?rating=5" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fas fa-star text-warning mr-2"></i>
+                            <strong>Đánh giá 5 sao</strong>
+                        </div>
+                        <span class="badge badge-warning badge-pill">Xem</span>
+                    </a>
+                    
+                    <a href="{% url 'reports:shop_review_list' %}?rating=1" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fas fa-exclamation-triangle text-danger mr-2"></i>
+                            <strong>Đánh giá 1 sao</strong>
+                        </div>
+                        <span class="badge badge-danger badge-pill">Xem</span>
+                    </a>
+                </div>
+                
+                <div class="mt-4 p-3 bg-light rounded">
+                    <h6 class="font-weight-bold mb-2">
+                        <i class="fas fa-chart-line text-success"></i> Thống Kê
+                    </h6>
+                    <div class="row text-center">
+                        <div class="col-6 mb-2">
+                            <div class="border rounded py-2 bg-white">
+                                <h5 class="mb-0 text-success">{{ shop_average_rating|floatformat:1 }}</h5>
+                                <small class="text-muted">Điểm TB</small>
+                            </div>
+                        </div>
+                        <div class="col-6 mb-2">
+                            <div class="border rounded py-2 bg-white">
+                                <h5 class="mb-0 text-primary">{{ total_shop_reviews }}</h5>
+                                <small class="text-muted">Tổng số</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Quick Stats Row -->
+<div class="row">
+    
+    <!-- Total Products -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-success shadow h-100 py-2 stats-card success card-hover">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            Tổng Sản Phẩm</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_products|default:"0" }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-apple-alt fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Total Orders -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-info shadow h-100 py-2 stats-card info card-hover">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                            Tổng Đơn Hàng</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_orders|default:"0" }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-shopping-cart fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pending Orders -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-warning shadow h-100 py-2 stats-card warning card-hover">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                            Đơn Chờ Xử Lý</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ pending_orders|default:"0" }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-clock fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- New Customers -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-info shadow h-100 py-2 stats-card info card-hover">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                            KH Mới (Tháng)</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ new_customers|default:"0" }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-user-plus fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+
+<script>
+// Set new default font family and font color to mimic Bootstrap's default styling
+Chart.defaults.font.family = 'Nunito, -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
+Chart.defaults.color = '#858796';
+
+// Format number to Vietnamese currency
+function formatCurrency(value) {
+    return new Intl.NumberFormat('vi-VN', { 
+        style: 'currency', 
+        currency: 'VND',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+    }).format(value);
+}
+
+// ============ AREA CHART - REVENUE ============
+var ctx = document.getElementById("myAreaChart");
+var myLineChart = null;
+
+// Fetch revenue data from API
+fetch("{% url 'reports:revenue_chart_api' %}")
+    .then(response => response.json())
+    .then(data => {
+        myLineChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: data.labels,
+                datasets: [{
+                    label: "Doanh thu",
+                    lineTension: 0.3,
+                    backgroundColor: "rgba(40, 167, 69, 0.1)",
+                    borderColor: "rgba(40, 167, 69, 1)",
+                    pointRadius: 4,
+                    pointBackgroundColor: "rgba(40, 167, 69, 1)",
+                    pointBorderColor: "rgba(255, 255, 255, 1)",
+                    pointHoverRadius: 6,
+                    pointHoverBackgroundColor: "rgba(40, 167, 69, 1)",
+                    pointHoverBorderColor: "rgba(255, 255, 255, 1)",
+                    pointHitRadius: 10,
+                    pointBorderWidth: 2,
+                    data: data.revenue,
+                }],
+            },
+            options: {
+                maintainAspectRatio: false,
+                layout: {
+                    padding: {
+                        left: 10,
+                        right: 25,
+                        top: 25,
+                        bottom: 0
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            display: false,
+                            drawBorder: false
+                        },
+                        ticks: {
+                            maxTicksLimit: 12
+                        }
+                    },
+                    y: {
+                        ticks: {
+                            maxTicksLimit: 5,
+                            padding: 10,
+                            callback: function(value, index, values) {
+                                return (value / 1000000).toFixed(1) + 'M';
+                            }
+                        },
+                        grid: {
+                            color: "rgb(234, 236, 244)",
+                            drawBorder: false,
+                            borderDash: [2],
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: "rgb(255,255,255)",
+                        bodyColor: "#858796",
+                        titleMarginBottom: 10,
+                        titleColor: '#6e707e',
+                        titleFont: {
+                            size: 14
+                        },
+                        borderColor: '#dddfeb',
+                        borderWidth: 1,
+                        padding: 15,
+                        displayColors: false,
+                        intersect: false,
+                        mode: 'index',
+                        caretPadding: 10,
+                        callbacks: {
+                            label: function(context) {
+                                var label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed.y !== null) {
+                                    label += formatCurrency(context.parsed.y);
+                                }
+                                return label;
+                            },
+                            afterLabel: function(context) {
+                                return 'Đơn hàng: ' + data.orders[context.dataIndex];
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    })
+    .catch(error => {
+        console.error('Error loading revenue chart:', error);
+        // Show fallback data if API fails
+        myLineChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ["T1", "T2", "T3", "T4", "T5", "T6", "T7", "T8", "T9", "T10", "T11", "T12"],
+                datasets: [{
+                    label: "Doanh thu",
+                    data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                }],
+            },
+            options: { maintainAspectRatio: false }
+        });
+    });
+
+// ============ PIE CHART - ORDER STATUS ============
+var ctx2 = document.getElementById("myPieChart");
+var myPieChart = null;
+
+// Fetch order status data from API
+fetch("{% url 'reports:order_status_api' %}")
+    .then(response => response.json())
+    .then(data => {
+        myPieChart = new Chart(ctx2, {
+            type: 'doughnut',
+            data: {
+                labels: data.labels,
+                datasets: [{
+                    data: data.data,
+                    backgroundColor: data.colors,
+                    hoverBackgroundColor: data.colors.map(color => {
+                        // Darken color on hover
+                        return color.replace(')', ', 0.8)').replace('rgb', 'rgba');
+                    }),
+                    hoverBorderColor: "rgba(234, 236, 244, 1)",
+                    borderWidth: 2,
+                }],
+            },
+            options: {
+                maintainAspectRatio: false,
+                plugins: {
+                    tooltip: {
+                        backgroundColor: "rgb(255,255,255)",
+                        bodyColor: "#858796",
+                        titleColor: '#6e707e',
+                        borderColor: '#dddfeb',
+                        borderWidth: 1,
+                        padding: 15,
+                        displayColors: true,
+                        caretPadding: 10,
+                        callbacks: {
+                            label: function(context) {
+                                var label = context.label || '';
+                                var value = context.parsed || 0;
+                                var total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                var percentage = ((value / total) * 100).toFixed(1);
+                                return label + ': ' + value + ' (' + percentage + '%)';
+                            }
+                        }
+                    },
+                    legend: {
+                        display: false
+                    }
+                },
+                cutout: '70%',
+            },
+        });
+    })
+    .catch(error => {
+        console.error('Error loading pie chart:', error);
+        // Show fallback data if API fails
+        myPieChart = new Chart(ctx2, {
+            type: 'doughnut',
+            data: {
+                labels: ["Không có dữ liệu"],
+                datasets: [{
+                    data: [1],
+                    backgroundColor: ['#e0e0e0'],
+                }],
+            },
+            options: { maintainAspectRatio: false, cutout: '70%' }
+        });
+    });
+
+// Auto refresh charts every 5 minutes
+setInterval(function() {
+    location.reload();
+}, 300000);
+</script>
+{% endblock %}
+

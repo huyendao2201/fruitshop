@@ -1,0 +1,362 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Cập nhật trạng thái - Fresh Berry{% endblock %}
+
+{% block extra_css %}
+<style>
+    .update-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 2rem 0;
+        margin: -1rem -15px 2rem -15px;
+        border-radius: 0 0 20px 20px;
+    }
+    
+    .form-card {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    
+    .order-info {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .btn-submit {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        color: white;
+        padding: 0.8rem 2rem;
+        border-radius: 25px;
+        font-weight: 600;
+    }
+    
+    .btn-get-location {
+        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        border: none;
+        color: white;
+        padding: 0.6rem 1.2rem;
+        border-radius: 20px;
+        font-weight: 500;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-get-location:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(17, 153, 142, 0.3);
+        color: white;
+    }
+    
+    .btn-get-location:disabled {
+        background: #6c757d;
+        cursor: not-allowed;
+        transform: none;
+    }
+    
+    .location-status {
+        font-size: 0.85rem;
+        margin-top: 0.5rem;
+        padding: 0.5rem;
+        border-radius: 8px;
+        display: none;
+    }
+    
+    .location-status.loading {
+        background: #fff3cd;
+        color: #856404;
+        display: block;
+    }
+    
+    .location-status.success {
+        background: #d4edda;
+        color: #155724;
+        display: block;
+    }
+    
+    .location-status.error {
+        background: #f8d7da;
+        color: #721c24;
+        display: block;
+    }
+    
+    .location-input-group {
+        position: relative;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="update-header">
+    <div class="container text-center">
+        <h2><i class="bi bi-pencil-square"></i> Cập nhật trạng thái giao hàng</h2>
+    </div>
+</div>
+
+<div class="form-card">
+    <div class="order-info">
+        <h5>{{ delivery.order.order_number }}</h5>
+        <p class="mb-1"><strong>Người nhận:</strong> {{ delivery.recipient_name }}</p>
+        <p class="mb-1"><strong>SĐT:</strong> {{ delivery.recipient_phone }}</p>
+        <p class="mb-0"><strong>Địa chỉ:</strong> {{ delivery.delivery_address }}</p>
+    </div>
+    
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <div class="mb-3">
+            <label class="form-label">{{ form.status.label }}</label>
+            {{ form.status }}
+            {% if form.status.errors %}
+            <div class="text-danger">{{ form.status.errors }}</div>
+            {% endif %}
+        </div>
+        
+        <div class="mb-3">
+            <label class="form-label">{{ form.message.label }}</label>
+            {{ form.message }}
+            {% if form.message.errors %}
+            <div class="text-danger">{{ form.message.errors }}</div>
+            {% endif %}
+        </div>
+        
+        <div class="mb-3">
+            <label class="form-label">{{ form.location_name.label }}</label>
+            <div class="location-input-group">
+                {{ form.location_name }}
+                <button type="button" class="btn btn-get-location mt-2" id="btnGetLocation">
+                    <i class="bi bi-geo-alt-fill"></i> Lấy vị trí hiện tại
+                </button>
+                <div id="locationStatus" class="location-status">
+                    <i class="bi bi-info-circle"></i> <span id="locationMessage"></span>
+                </div>
+            </div>
+            {% if form.location_name.errors %}
+            <div class="text-danger">{{ form.location_name.errors }}</div>
+            {% endif %}
+            <small class="text-muted d-block mt-1">
+                <i class="bi bi-lightbulb"></i> Nhấn nút để tự động lấy vị trí GPS hiện tại của bạn
+            </small>
+        </div>
+        
+        <div class="mb-3">
+            <label class="form-label">{{ form.image.label }}</label>
+            {{ form.image }}
+            {% if form.image.errors %}
+            <div class="text-danger">{{ form.image.errors }}</div>
+            {% endif %}
+            <small class="text-muted d-block mt-1">Chụp ảnh xác nhận (nếu có)</small>
+        </div>
+        
+        <div class="mb-3" id="failure-reason-group" style="display: none;">
+            <label class="form-label">{{ form.failure_reason.label }}</label>
+            {{ form.failure_reason }}
+            {% if form.failure_reason.errors %}
+            <div class="text-danger">{{ form.failure_reason.errors }}</div>
+            {% endif %}
+        </div>
+        
+        <div class="text-center">
+            <button type="submit" class="btn btn-submit">
+                <i class="bi bi-check-circle"></i> Cập nhật
+            </button>
+            <a href="{% url 'delivery:my_deliveries' %}" class="btn btn-outline-secondary ms-2">
+                Hủy
+            </a>
+        </div>
+    </form>
+</div>
+
+<script>
+// Show/hide failure reason based on status
+document.addEventListener('DOMContentLoaded', function() {
+    const statusSelect = document.querySelector('select[name="status"]');
+    const failureReasonGroup = document.getElementById('failure-reason-group');
+    
+    statusSelect.addEventListener('change', function() {
+        if (this.value === 'failed') {
+            failureReasonGroup.style.display = 'block';
+        } else {
+            failureReasonGroup.style.display = 'none';
+        }
+    });
+    
+    // ============================================
+    // GEOLOCATION - LẤY VỊ TRÍ HIỆN TẠI
+    // ============================================
+    const btnGetLocation = document.getElementById('btnGetLocation');
+    const locationInput = document.querySelector('input[name="location_name"]');
+    const locationStatus = document.getElementById('locationStatus');
+    const locationMessage = document.getElementById('locationMessage');
+    
+    // Check if Geolocation API is supported
+    if (!navigator.geolocation) {
+        btnGetLocation.disabled = true;
+        btnGetLocation.innerHTML = '<i class="bi bi-x-circle"></i> Không hỗ trợ';
+        showLocationStatus('error', 'Trình duyệt của bạn không hỗ trợ Geolocation');
+    }
+    
+    btnGetLocation.addEventListener('click', function() {
+        getCurrentLocation();
+    });
+    
+    function getCurrentLocation() {
+        // Disable button while getting location
+        btnGetLocation.disabled = true;
+        btnGetLocation.innerHTML = '<i class="bi bi-hourglass-split"></i> Đang lấy vị trí...';
+        
+        showLocationStatus('loading', 'Đang truy cập GPS của bạn...');
+        
+        const options = {
+            enableHighAccuracy: true,  // Độ chính xác cao
+            timeout: 10000,            // Timeout 10 giây
+            maximumAge: 0              // Không dùng cache
+        };
+        
+        navigator.geolocation.getCurrentPosition(
+            handleSuccess,
+            handleError,
+            options
+        );
+    }
+    
+    function handleSuccess(position) {
+        const latitude = position.coords.latitude;
+        const longitude = position.coords.longitude;
+        const accuracy = position.coords.accuracy;
+        
+        console.log('📍 Vị trí:', latitude, longitude);
+        console.log('🎯 Độ chính xác:', accuracy, 'meters');
+        
+        showLocationStatus('loading', `Đã lấy tọa độ (±${Math.round(accuracy)}m). Đang chuyển thành địa chỉ...`);
+        
+        // Reverse Geocoding - Convert coordinates to address
+        reverseGeocode(latitude, longitude);
+    }
+    
+    function handleError(error) {
+        let errorMessage = '';
+        
+        switch(error.code) {
+            case error.PERMISSION_DENIED:
+                errorMessage = '❌ Bạn đã từ chối cho phép truy cập vị trí. Vui lòng bật quyền truy cập trong cài đặt trình duyệt.';
+                break;
+            case error.POSITION_UNAVAILABLE:
+                errorMessage = '❌ Không thể xác định vị trí. Vui lòng kiểm tra GPS/WiFi.';
+                break;
+            case error.TIMEOUT:
+                errorMessage = '⏱️ Hết thời gian chờ. Vui lòng thử lại.';
+                break;
+            default:
+                errorMessage = '❌ Lỗi không xác định: ' + error.message;
+        }
+        
+        showLocationStatus('error', errorMessage);
+        resetButton();
+    }
+    
+    function reverseGeocode(lat, lng) {
+        // Sử dụng Nominatim OpenStreetMap API (FREE, không cần API key)
+        const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`;
+        
+        fetch(url, {
+            headers: {
+                'Accept-Language': 'vi'  // Lấy địa chỉ tiếng Việt
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('🗺️ Reverse geocode data:', data);
+            
+            if (data.display_name) {
+                // Format địa chỉ đẹp hơn
+                let address = data.display_name;
+                
+                // Hoặc tự build từ components
+                if (data.address) {
+                    const addr = data.address;
+                    const parts = [];
+                    
+                    // Thêm các phần địa chỉ theo thứ tự
+                    if (addr.house_number) parts.push(addr.house_number);
+                    if (addr.road) parts.push(addr.road);
+                    if (addr.quarter || addr.suburb) parts.push(addr.quarter || addr.suburb);
+                    if (addr.city || addr.town || addr.village) parts.push(addr.city || addr.town || addr.village);
+                    if (addr.state) parts.push(addr.state);
+                    
+                    if (parts.length > 0) {
+                        address = parts.join(', ');
+                    }
+                }
+                
+                // Thêm tọa độ vào cuối (hữu ích cho tracking)
+                const finalAddress = `${address} (${lat.toFixed(6)}, ${lng.toFixed(6)})`;
+                
+                locationInput.value = finalAddress;
+                showLocationStatus('success', `✅ Đã lấy vị trí thành công!`);
+                
+                // Auto-hide success message after 3 seconds
+                setTimeout(() => {
+                    locationStatus.classList.remove('success');
+                    locationStatus.style.display = 'none';
+                }, 3000);
+            } else {
+                // Nếu không tìm được địa chỉ, dùng tọa độ
+                const coordsAddress = `Vị trí GPS: ${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+                locationInput.value = coordsAddress;
+                showLocationStatus('success', '✅ Đã lấy tọa độ (không tìm được địa chỉ cụ thể)');
+            }
+            
+            resetButton();
+        })
+        .catch(error => {
+            console.error('Reverse geocode error:', error);
+            
+            // Fallback: Nếu reverse geocode fail, vẫn dùng tọa độ
+            const coordsAddress = `Vị trí GPS: ${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+            locationInput.value = coordsAddress;
+            showLocationStatus('success', '⚠️ Đã lấy tọa độ (không kết nối được dịch vụ bản đồ)');
+            
+            resetButton();
+        });
+    }
+    
+    function showLocationStatus(type, message) {
+        // Remove all status classes
+        locationStatus.classList.remove('loading', 'success', 'error');
+        
+        // Add new status class
+        locationStatus.classList.add(type);
+        locationMessage.textContent = message;
+    }
+    
+    function resetButton() {
+        btnGetLocation.disabled = false;
+        btnGetLocation.innerHTML = '<i class="bi bi-geo-alt-fill"></i> Lấy vị trí hiện tại';
+    }
+});
+</script>
+{% endblock %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

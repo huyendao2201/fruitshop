@@ -1,0 +1,209 @@
+/* Custom styles for Fresh Fruit Shop */
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f8f9fa;
+}
+
+/* Toast Notification Styles */
+.toast-container {
+    z-index: 9999 !important;
+}
+
+.toast {
+    min-width: 300px;
+    max-width: 400px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border: none;
+    animation: slideInRight 0.4s ease-out;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.toast.hiding {
+    animation: slideOutRight 0.4s ease-out;
+}
+
+@keyframes slideOutRight {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+.toast-header {
+    border-bottom: none;
+    padding: 0.75rem 1rem;
+    font-weight: 600;
+}
+
+.toast-header.bg-success {
+    background-color: #28a745 !important;
+}
+
+.toast-header.bg-error,
+.toast-header.bg-danger {
+    background-color: #dc3545 !important;
+}
+
+.toast-header.bg-warning {
+    background-color: #ffc107 !important;
+    color: #000 !important;
+}
+
+.toast-header.bg-warning .btn-close {
+    filter: invert(1);
+}
+
+.toast-header.bg-info {
+    background-color: #17a2b8 !important;
+}
+
+.toast-body {
+    padding: 1rem;
+    font-size: 0.95rem;
+}
+
+.navbar-brand {
+    font-weight: bold;
+    font-size: 1.5rem;
+}
+
+.product-card {
+    transition: transform 0.2s ease-in-out;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.product-image {
+    height: 200px;
+    object-fit: cover;
+}
+
+.price-tag {
+    font-size: 1.25rem;
+    font-weight: bold;
+    color: #3d4750;
+}
+
+.btn-add-to-cart {
+    background-color: #3d4750;
+    border-color: #3d4750;
+    transition: all 0.2s ease-in-out;
+}
+
+.btn-add-to-cart:hover {
+    background-color: #2a3138;
+    border-color: #2a3138;
+    transform: translateY(-1px);
+}
+
+.cart-item {
+    border-bottom: 1px solid #dee2e6;
+    padding: 1rem 0;
+}
+
+.cart-item:last-child {
+    border-bottom: none;
+}
+
+.quantity-input {
+    width: 80px;
+}
+
+.hero-section {
+    background: linear-gradient(135deg, #3d4750, #5a6c7d);
+    color: white;
+    padding: 4rem 0;
+    margin-bottom: 2rem;
+}
+
+.category-card {
+    border: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: transform 0.2s ease-in-out;
+}
+
+.category-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.order-status {
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.status-pending {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.status-processing {
+    background-color: #cce5ff;
+    color: #004085;
+}
+
+.status-completed {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.status-canceled {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.dashboard-card {
+    border: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: transform 0.2s ease-in-out;
+}
+
+.dashboard-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.stat-icon {
+    font-size: 2rem;
+    opacity: 0.8;
+}
+
+footer {
+    margin-top: auto;
+}
+
+html, body {
+    height: 100%;
+}
+
+#root {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+main {
+    flex: 1;
+}

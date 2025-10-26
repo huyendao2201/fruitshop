@@ -1,0 +1,461 @@
+{% extends 'admin_dashboard/base.html' %}
+
+{% block title %}Chi Tiết Đơn Hàng #{{ order.order_number }}{% endblock %}
+
+{% block page_title %}Chi Tiết Đơn Hàng #{{ order.order_number }}{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'reports:order_list' %}" class="btn btn-sm btn-secondary shadow-sm">
+    <i class="fas fa-arrow-left fa-sm"></i> Quay Lại
+</a>
+{% endblock %}
+
+{% block content %}
+
+<div class="row">
+    <!-- Left Column -->
+    <div class="col-lg-8">
+        <!-- Order Items -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Sản Phẩm Trong Đơn</h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Sản Phẩm</th>
+                                <th>Đơn Giá</th>
+                                <th>Số Lượng</th>
+                                <th>Thành Tiền</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in order.items.all %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        {% if item.product.get_primary_image %}
+                                        <img src="{{ item.product.get_primary_image.url }}" alt="{{ item.product.name }}" style="width: 50px; height: 50px; object-fit: cover; margin-right: 10px;">
+                                        {% endif %}
+                                        <div>
+                                            <a href="{% url 'reports:product_detail' item.product.id %}" class="font-weight-bold">{{ item.product.name }}</a>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>{{ item.price|floatformat:0 }}đ</td>
+                                <td>{{ item.quantity }}</td>
+                                <td class="font-weight-bold">{{ item.get_total|floatformat:0 }}đ</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="3" class="text-right font-weight-bold">Tạm Tính:</td>
+                                <td class="font-weight-bold">{{ order.subtotal|floatformat:0 }}đ</td>
+                            </tr>
+                            <tr>
+                                <td colspan="3" class="text-right font-weight-bold">Phí Vận Chuyển:</td>
+                                <td class="font-weight-bold">{{ order.shipping_fee|floatformat:0 }}đ</td>
+                            </tr>
+                            {% if order.discount_amount %}
+                            <tr>
+                                <td colspan="3" class="text-right font-weight-bold text-success">Giảm Giá:</td>
+                                <td class="font-weight-bold text-success">-{{ order.discount_amount|floatformat:0 }}đ</td>
+                            </tr>
+                            {% endif %}
+                            <tr class="bg-light">
+                                <td colspan="3" class="text-right font-weight-bold h5 mb-0">TỔNG CỘNG:</td>
+                                <td class="font-weight-bold h5 mb-0 text-primary">{{ order.total_amount|floatformat:0 }}đ</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Shipping Address -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Thông Tin Giao Hàng</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="font-weight-bold">Người Nhận:</h6>
+                        <p>{{ order.full_name }}</p>
+                        
+                        <h6 class="font-weight-bold">Số Điện Thoại:</h6>
+                        <p>{{ order.phone }}</p>
+                        
+                        <h6 class="font-weight-bold">Email:</h6>
+                        <p>{{ order.email }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="font-weight-bold">Địa Chỉ Giao Hàng:</h6>
+                        <p>{{ order.address }}</p>
+                        
+                        {% if order.notes %}
+                        <h6 class="font-weight-bold">Ghi Chú:</h6>
+                        <p class="text-muted">{{ order.notes }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Right Column -->
+    <div class="col-lg-4">
+        <!-- Order Status -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Trạng Thái Đơn Hàng</h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <strong>Trạng Thái Hiện Tại:</strong><br>
+                    {% if order.status == 'pending' %}
+                    <span class="badge badge-warning badge-lg">Chờ xác nhận</span>
+                    {% elif order.status == 'confirmed' %}
+                    <span class="badge badge-info badge-lg">Đã xác nhận</span>
+                    {% elif order.status == 'processing' %}
+                    <span class="badge badge-primary badge-lg">Đang xử lý</span>
+                    {% elif order.status == 'shipped' %}
+                    <span class="badge badge-primary badge-lg">Đã giao vận</span>
+                    {% elif order.status == 'delivered' %}
+                    <span class="badge badge-success badge-lg">Đã giao hàng</span>
+                    {% elif order.status == 'cancelled' %}
+                    <span class="badge badge-danger badge-lg">Đã hủy</span>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-3">
+                    <strong>Thanh Toán:</strong><br>
+                    {% if order.payment_status == 'pending' %}
+                    <span class="badge badge-warning badge-lg">Chờ thanh toán</span>
+                    {% elif order.payment_status == 'paid' %}
+                    <span class="badge badge-success badge-lg">Đã thanh toán</span>
+                    {% elif order.payment_status == 'failed' %}
+                    <span class="badge badge-danger badge-lg">Thất bại</span>
+                    {% elif order.payment_status == 'refunded' %}
+                    <span class="badge badge-secondary badge-lg">Đã hoàn tiền</span>
+                    {% endif %}
+                </div>
+                
+                <hr>
+                
+                <form method="post" action="{% url 'reports:order_update_status' order.id %}">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label class="font-weight-bold">Cập Nhật Trạng Thái:</label>
+                        <select name="status" class="form-control">
+                            <option value="pending" {% if order.status == 'pending' %}selected{% endif %}>Chờ xác nhận</option>
+                            <option value="confirmed" {% if order.status == 'confirmed' %}selected{% endif %}>Đã xác nhận</option>
+                            <option value="processing" {% if order.status == 'processing' %}selected{% endif %}>Đang xử lý</option>
+                            <option value="shipped" {% if order.status == 'shipped' %}selected{% endif %}>Đã giao vận</option>
+                            <option value="delivered" {% if order.status == 'delivered' %}selected{% endif %}>Đã giao hàng</option>
+                            <option value="cancelled" {% if order.status == 'cancelled' %}selected{% endif %}>Đã hủy</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">
+                        <i class="fas fa-save"></i> Cập Nhật
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Order Info -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Thông Tin Đơn Hàng</h6>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mb-0">
+                    <li class="mb-2">
+                        <strong>Mã Đơn:</strong><br>
+                        <span class="text-primary">#{{ order.order_number }}</span>
+                    </li>
+                    <li class="mb-2">
+                        <strong>Khách Hàng:</strong><br>
+                        <a href="{% url 'reports:customer_detail' order.user.id %}">{{ order.user.full_name|default:order.user.username }}</a>
+                    </li>
+                    <li class="mb-2">
+                        <strong>Ngày Đặt:</strong><br>
+                        {{ order.created_at|date:"d/m/Y H:i" }}
+                    </li>
+                    <li class="mb-2">
+                        <strong>Cập Nhật:</strong><br>
+                        {{ order.updated_at|date:"d/m/Y H:i" }}
+                    </li>
+                    <li class="mb-2">
+                        <strong>Phương Thức Thanh Toán:</strong><br>
+                        {% if order.payment_method == 'cod' %}
+                        <span class="badge badge-info">Thanh toán khi nhận hàng</span>
+                        {% elif order.payment_method == 'bank_transfer' %}
+                        <span class="badge badge-info">Chuyển khoản</span>
+                        {% elif order.payment_method == 'momo' %}
+                        <span class="badge badge-info">MoMo</span>
+                        {% elif order.payment_method == 'vnpay' %}
+                        <span class="badge badge-info">VNPay</span>
+                        {% endif %}
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        <!-- Delivery Management -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-shipping-fast"></i> Quản Lý Giao Hàng
+                </h6>
+            </div>
+            <div class="card-body">
+                {% if delivery %}
+                    <!-- Delivery Status -->
+                    <div class="mb-3">
+                        <strong>Trạng Thái Giao Hàng:</strong><br>
+                        {% if delivery.status == 'pending' %}
+                        <span class="badge badge-warning badge-lg">Chờ phân công</span>
+                        {% elif delivery.status == 'assigned' %}
+                        <span class="badge badge-info badge-lg">Đã phân công</span>
+                        {% elif delivery.status == 'picked_up' %}
+                        <span class="badge badge-primary badge-lg">Đã lấy hàng</span>
+                        {% elif delivery.status == 'in_transit' %}
+                        <span class="badge badge-primary badge-lg">Đang giao</span>
+                        {% elif delivery.status == 'delivered' %}
+                        <span class="badge badge-success badge-lg">Đã giao</span>
+                        {% elif delivery.status == 'failed' %}
+                        <span class="badge badge-danger badge-lg">Thất bại</span>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Delivery Person Info -->
+                    {% if delivery.delivery_person %}
+                    <div class="mb-3 p-3 bg-light rounded">
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="fas fa-user-tie fa-2x text-primary mr-3"></i>
+                            <div>
+                                <strong>Nhân viên giao hàng:</strong><br>
+                                {{ delivery.delivery_person.user.get_full_name|default:delivery.delivery_person.user.username }}
+                            </div>
+                        </div>
+                        <small class="text-muted">
+                            <i class="fas fa-phone"></i> {{ delivery.delivery_person.phone }}<br>
+                            <i class="fas fa-motorcycle"></i> {{ delivery.delivery_person.get_vehicle_type_display }} - {{ delivery.delivery_person.vehicle_number }}<br>
+                            <i class="fas fa-star text-warning"></i> {{ delivery.delivery_person.rating|floatformat:1 }}/5.0
+                        </small>
+                    </div>
+                    {% else %}
+                    <!-- Assign Form -->
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i> Chưa phân công shipper
+                    </div>
+                    <form method="post" action="{% url 'reports:delivery_assign' delivery.id %}">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label class="font-weight-bold">Chọn Shipper:</label>
+                            <select name="delivery_person_id" class="form-control" required>
+                                <option value="">-- Chọn nhân viên --</option>
+                                {% for person in available_delivery_persons %}
+                                <option value="{{ person.id }}">
+                                    {{ person.user.get_full_name|default:person.user.username }}
+                                    ({{ person.current_deliveries_count }} đơn đang giao - ⭐{{ person.rating|floatformat:1 }})
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-success btn-block">
+                            <i class="fas fa-user-plus"></i> Phân Công Ngay
+                        </button>
+                    </form>
+                    {% endif %}
+                    
+                    <!-- Update Delivery Status -->
+                    {% if delivery.delivery_person and delivery.status != 'delivered' %}
+                    <hr>
+                    <form method="post" action="{% url 'reports:delivery_update_status' delivery.id %}">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label class="font-weight-bold">Cập nhật trạng thái:</label>
+                            <select name="status" class="form-control">
+                                <option value="picked_up" {% if delivery.status == 'picked_up' %}selected{% endif %}>Đã lấy hàng</option>
+                                <option value="in_transit" {% if delivery.status == 'in_transit' %}selected{% endif %}>Đang giao</option>
+                                <option value="delivered" {% if delivery.status == 'delivered' %}selected{% endif %}>Đã giao</option>
+                                <option value="failed">Giao thất bại</option>
+                            </select>
+                        </div>
+                        {% if delivery.status != 'delivered' %}
+                        <button type="submit" class="btn btn-primary btn-sm btn-block">
+                            <i class="fas fa-sync"></i> Cập Nhật
+                        </button>
+                        {% endif %}
+                    </form>
+                    {% endif %}
+                    
+                    <!-- View Full Delivery Detail -->
+                    <a href="{% url 'reports:delivery_detail' delivery.id %}" class="btn btn-outline-primary btn-sm btn-block mt-3">
+                        <i class="fas fa-info-circle"></i> Xem Chi Tiết Giao Hàng
+                    </a>
+                {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> Đơn hàng chưa sẵn sàng giao hàng.<br>
+                        <small>Delivery sẽ tự động tạo khi đơn hàng được xác nhận.</small>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Customer Info -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Thông Tin Khách Hàng</h6>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-3">
+                    <i class="fas fa-user-circle fa-4x text-gray-400"></i>
+                </div>
+                <ul class="list-unstyled mb-0">
+                    <li class="mb-2">
+                        <strong>Tên:</strong><br>
+                        {{ order.user.full_name|default:order.user.username }}
+                    </li>
+                    <li class="mb-2">
+                        <strong>Email:</strong><br>
+                        {{ order.user.email }}
+                    </li>
+                    <li class="mb-2">
+                        <strong>SĐT:</strong><br>
+                        {{ order.user.phone|default:"—" }}
+                    </li>
+                </ul>
+                <a href="{% url 'reports:customer_detail' order.user.id %}" class="btn btn-info btn-block mt-3">
+                    <i class="fas fa-user"></i> Xem Hồ Sơ
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delivery Tracking Timeline (if delivery exists) -->
+{% if delivery and tracking_logs %}
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-route"></i> Lịch Sử Theo Dõi Giao Hàng
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="timeline">
+                    {% for log in tracking_logs %}
+                    <div class="timeline-item">
+                        <div class="timeline-marker 
+                            {% if log.status == 'delivered' %}bg-success
+                            {% elif log.status == 'failed' %}bg-danger
+                            {% elif log.status == 'in_transit' or log.status == 'picked_up' %}bg-primary
+                            {% else %}bg-info{% endif %}">
+                            <i class="fas fa-circle"></i>
+                        </div>
+                        <div class="timeline-content">
+                            <div class="d-flex justify-content-between">
+                                <h6 class="mb-1">
+                                    <span class="badge badge-{% if log.status == 'delivered' %}success{% elif log.status == 'failed' %}danger{% else %}primary{% endif %}">
+                                        {{ log.get_status_display }}
+                                    </span>
+                                </h6>
+                                <small class="text-muted">{{ log.created_at|date:"d/m/Y H:i" }}</small>
+                            </div>
+                            <p class="mb-1">{{ log.message }}</p>
+                            {% if log.location_name %}
+                            <small class="text-muted"><i class="fas fa-map-marker-alt"></i> {{ log.location_name }}</small>
+                            {% endif %}
+                            {% if log.created_by %}
+                            <br><small class="text-muted">Bởi: {{ log.created_by.get_full_name|default:log.created_by.username }}</small>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<style>
+    .badge-lg {
+        font-size: 1rem;
+        padding: 0.5rem 1rem;
+    }
+    
+    /* Timeline Styles */
+    .timeline {
+        position: relative;
+        padding-left: 30px;
+    }
+    
+    .timeline::before {
+        content: '';
+        position: absolute;
+        left: 10px;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: #e3e6f0;
+    }
+    
+    .timeline-item {
+        position: relative;
+        margin-bottom: 20px;
+        padding-left: 30px;
+    }
+    
+    .timeline-marker {
+        position: absolute;
+        left: -25px;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 8px;
+    }
+    
+    .timeline-content {
+        background: #f8f9fc;
+        border-radius: 0.35rem;
+        padding: 15px;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    }
+    
+    .timeline-item:last-child .timeline-content {
+        margin-bottom: 0;
+    }
+</style>
+
+{% endblock %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
