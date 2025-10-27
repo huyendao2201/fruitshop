@@ -1,3 +1,6 @@
+""""
+xử lý đăng ký
+"""
 from django.shortcuts import render, redirect
 from django.views.generic import CreateView, UpdateView, TemplateView
 from django.contrib.auth import login

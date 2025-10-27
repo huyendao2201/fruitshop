@@ -18,7 +18,7 @@ urlpatterns = [
     
     # Orders
     path('my-orders/', views.OrderListView.as_view(), name='order_list'),
-    path('order/<str:order_number>/', views.OrderDetailView.as_view(), name='order_detail'),
+    path('orrde/<str:order_number>/', views.OrderDetailView.as_view(), name='order_detail'),
     path('order/<str:order_number>/cancel/', views.CancelOrderView.as_view(), name='cancel_order'),
     
     # VNPay payment
