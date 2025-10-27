@@ -1,5 +1,6 @@
 """
 Views xác thực tùy chỉnh với chuyển hướng dựa trên vai trò
+xử lý đăng nhập, đăng xuất
 """
 from django.contrib.auth import views as auth_views
 from django.shortcuts import redirect

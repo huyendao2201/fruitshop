@@ -54,7 +54,7 @@ class HomeView(TemplateView):
         
         return context
 
-
+"""trangcuahang"""
 class ProductListView(ListView):
     model = Product
     template_name = 'products/product_list.html'
@@ -198,7 +198,7 @@ class AddReviewView(LoginRequiredMixin, View):
         
         return redirect('products:product_detail', slug=slug)
 
-
+"""themspiuthich"""
 class ToggleWishlistView(LoginRequiredMixin, View):
     """Thêm/xóa sản phẩm khỏi wishlist"""
     def post(self, request, slug):
@@ -226,7 +226,7 @@ class ToggleWishlistView(LoginRequiredMixin, View):
         messages.success(request, message)
         return redirect('products:product_detail', slug=slug)
 
-
+"""xemlaids.sp.iuthich"""
 class WishlistView(LoginRequiredMixin, ListView):
     """Xem danh sách yêu thích của người dùng"""
     model = Wishlist
@@ -282,7 +282,7 @@ class CategoryListView(ListView):
         """Lấy các danh mục đang hoạt động"""
         return Category.objects.filter(is_active=True)
 
-
+"""đky nhận tin hihi"""
 class NewsletterSubscribeView(View):
     """Đăng ký nhận tin qua email"""
     

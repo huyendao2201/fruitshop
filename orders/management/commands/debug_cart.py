@@ -1,5 +1,6 @@
 """
 Management command to debug cart sessions
+dùng để debug
 """
 from django.core.management.base import BaseCommand
 from django.contrib.sessions.models import Session

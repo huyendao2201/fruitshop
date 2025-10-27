@@ -25,7 +25,7 @@ class AdminRequiredMixin(LoginRequiredMixin):
             return redirect_to_login(request.get_full_path())
         return super().dispatch(request, *args, **kwargs)
 
-
+"""tongquan"""
 class DashboardView(AdminRequiredMixin, TemplateView):
     template_name = 'admin_dashboard/dashboard.html'
     
