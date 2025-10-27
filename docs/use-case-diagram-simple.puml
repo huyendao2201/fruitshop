@@ -1,0 +1,136 @@
+@startuml FreshBerry Use Case Diagram (Simplified)
+
+' Layout - Top to Bottom (Vertical)
+top to bottom direction
+
+' Styling
+skinparam actorStyle awesome
+skinparam packageStyle rectangle
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+skinparam backgroundColor white
+
+' Title
+title FreshBerry Fruit Shop - Use Case Diagram (Vertical Layout)
+
+' Actors
+actor "Khách hàng" as Customer #LightBlue
+actor "Admin" as Admin #Orange
+actor "Shipper" as Shipper #LightGreen
+actor "VNPay" as VNPay #Yellow
+actor "Email" as Email #Pink
+
+' System boundary
+rectangle "FreshBerry System" {
+    
+    ' Customer Use Cases
+    rectangle "Khách hàng" #LightCyan {
+        (Đăng ký/Đăng nhập) as Login
+        (Duyệt sản phẩm) as Browse
+        (Xem chi tiết sản phẩm) as Detail
+        (Thêm vào giỏ hàng) as AddCart
+        (Thanh toán) as Checkout
+        (Theo dõi đơn hàng) as Track
+        (Đánh giá) as Review
+    }
+    
+    ' Admin Use Cases
+    rectangle "Quản trị" #Wheat {
+        (Quản lý sản phẩm) as ManageProduct
+        (Quản lý đơn hàng) as ManageOrder
+        (Phân công shipper) as AssignShipper
+        (Quản lý mã giảm giá) as ManageDiscount
+        (Xem báo cáo) as ViewReport
+        (Dashboard) as Dashboard
+    }
+    
+    ' Shipper Use Cases
+    rectangle "Giao hàng" #LightGreen {
+        (Xem đơn giao) as ViewDelivery
+        (Xác nhận lấy hàng) as PickUp
+        (Cập nhật giao hàng) as UpdateDelivery
+        (Upload ảnh chứng minh) as UploadProof
+    }
+    
+    ' System Use Cases
+    rectangle "Hệ thống" #LavenderBlush {
+        (Thanh toán VNPay) as PayVNPay
+        (Thanh toán COD) as PayCOD
+        (Gửi email thông báo) as SendEmail
+        (Tracking real-time) as RealTimeTrack
+    }
+}
+
+' Customer relationships
+Customer --> Login
+Customer --> Browse
+Customer --> Detail
+Customer --> AddCart
+Customer --> Checkout
+Customer --> Track
+Customer --> Review
+
+' Admin relationships
+Admin --> ManageProduct
+Admin --> ManageOrder
+Admin --> AssignShipper
+Admin --> ManageDiscount
+Admin --> ViewReport
+Admin --> Dashboard
+
+' Shipper relationships
+Shipper --> ViewDelivery
+Shipper --> PickUp
+Shipper --> UpdateDelivery
+Shipper --> UploadProof
+
+' Use case relationships
+Checkout ..> PayVNPay : <<extend>>
+Checkout ..> PayCOD : <<extend>>
+Checkout ..> SendEmail : <<include>>
+
+ManageOrder ..> AssignShipper : <<include>>
+AssignShipper ..> SendEmail : <<include>>
+
+UpdateDelivery ..> RealTimeTrack : <<include>>
+
+' External system relationships
+PayVNPay --> VNPay : uses
+SendEmail --> Email : uses
+
+' Notes
+note right of Customer
+  **Khách hàng có thể:**
+  • Mua sắm không cần login
+  • Thanh toán VNPay/COD
+  • Theo dõi đơn hàng
+  • Đánh giá sản phẩm
+end note
+
+note right of Admin
+  **Admin quản lý:**
+  • Sản phẩm & Danh mục
+  • Đơn hàng & Giao hàng
+  • Mã giảm giá
+  • Báo cáo & Thống kê
+end note
+
+note bottom of Shipper
+  **Shipper thực hiện:**
+  • Nhận đơn qua email
+  • Cập nhật trạng thái
+  • Upload ảnh giao hàng
+end note
+
+legend right
+  **Chú thích:**
+  <<include>> = Bắt buộc
+  <<extend>> = Tùy chọn
+  
+  **46+ Use Cases** được đơn giản hóa
+  thành các nhóm chức năng chính
+endlegend
+
+@enduml
+

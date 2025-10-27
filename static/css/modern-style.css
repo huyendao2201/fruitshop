@@ -155,7 +155,9 @@ html {
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(135deg, rgba(61, 71, 80, 0.9), rgba(90, 108, 125, 0.8));
+    /*
+        background: linear-gradient(135deg, rgba(61, 71, 80, 0.9), rgba(90, 108, 125, 0.8));
+*/
 }
 
 .hero-content {

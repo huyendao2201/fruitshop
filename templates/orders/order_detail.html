@@ -36,8 +36,8 @@
                     {% for item in order.items.all %}
                     <div class="order-item-row row align-items-center {% if not forloop.last %}border-bottom pb-3 mb-3{% endif %}">
                         <div class="col-md-2">
-                            {% if item.product.image %}
-                                <img src="{{ item.product.image.url }}" class="img-fluid rounded shadow-sm" alt="{{ item.product.name }}" style="max-height: 80px; object-fit: cover;">
+                            {% if item.product.get_primary_image %}
+                                <img src="{{ item.product.get_primary_image.url }}" class="img-fluid rounded shadow-sm" alt="{{ item.product.name }}" style="max-height: 80px; object-fit: cover;">
                             {% else %}
                                 <div class="bg-light rounded d-flex align-items-center justify-content-center" style="height: 80px;">
                                     <i class="bi bi-image text-muted fs-3"></i>
@@ -127,7 +127,17 @@
                             <strong>Phương thức thanh toán:</strong>
                         </div>
                         <span class="text-muted ps-4">
-                            <i class="bi bi-cash"></i> Thanh toán khi nhận hàng
+                            {% if order.payment_method == 'cod' %}
+                                <i class="bi bi-cash"></i> Thanh toán khi nhận hàng
+                            {% elif order.payment_method == 'bank_transfer' %}
+                                <i class="bi bi-bank"></i> Chuyển khoản ngân hàng
+                            {% elif order.payment_method == 'momo' %}
+                                <i class="bi bi-wallet2"></i> MoMo
+                            {% elif order.payment_method == 'vnpay' %}
+                                <i class="bi bi-credit-card-2-front"></i> VNPay
+                            {% else %}
+                                <i class="bi bi-cash"></i> {{ order.get_payment_method_display }}
+                            {% endif %}
                         </span>
                     </div>
                     

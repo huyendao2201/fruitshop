@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreshBerry - Use Case Diagram</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 2px solid #dee2e6;
+            padding: 0 20px;
+        }
+        
+        .tab {
+            padding: 15px 30px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #6c757d;
+            transition: all 0.3s;
+            position: relative;
+        }
+        
+        .tab:hover {
+            color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+        }
+        
+        .tab.active {
+            color: #667eea;
+        }
+        
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: #667eea;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .diagram-container {
+            text-align: center;
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .diagram-container img {
+            max-width: 100%;
+            height: auto;
+            border: 2px solid #dee2e6;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .info-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .info-box h3 {
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+        
+        .info-box ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .info-box li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+        }
+        
+        .info-box li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            font-weight: bold;
+            color: #4ade80;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .stat-card .number {
+            font-size: 3em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .stat-card .label {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .how-to {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .how-to h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+        
+        .how-to ol {
+            padding-left: 20px;
+        }
+        
+        .how-to li {
+            padding: 8px 0;
+            line-height: 1.6;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: 600;
+            margin: 10px 5px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .code-block {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 15px 0;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+        }
+        
+        footer {
+            background: #2d3748;
+            color: white;
+            text-align: center;
+            padding: 20px;
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🍓 FreshBerry Fruit Shop</h1>
+            <p>Use Case Diagram - Tài liệu thiết kế hệ thống</p>
+        </header>
+        
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('overview')">📊 Tổng quan</button>
+            <button class="tab" onclick="showTab('diagram')">🎨 Sơ đồ Use Case</button>
+            <button class="tab" onclick="showTab('howto')">📖 Hướng dẫn xem</button>
+            <button class="tab" onclick="showTab('details')">📝 Chi tiết Use Cases</button>
+        </div>
+        
+        <div class="content">
+            <!-- Tab 1: Tổng quan -->
+            <div id="overview" class="tab-content active">
+                <h2>📋 Tổng quan dự án</h2>
+                
+                <div class="info-box">
+                    <h3>🎯 Về hệ thống</h3>
+                    <ul>
+                        <li><strong>Tên dự án:</strong> FreshBerry Fruit Shop</li>
+                        <li><strong>Công nghệ:</strong> Django 5.2+ (Python), MySQL</li>
+                        <li><strong>Mô tả:</strong> Hệ thống bán trái cây trực tuyến hoàn chỉnh</li>
+                        <li><strong>Tính năng:</strong> E-commerce, VNPay, Delivery tracking, Admin dashboard</li>
+                    </ul>
+                </div>
+                
+                <h3>📊 Thống kê Use Cases</h3>
+                <div class="stats">
+                    <div class="stat-card">
+                        <div class="number">46+</div>
+                        <div class="label">Use Cases</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="number">4</div>
+                        <div class="label">Actors</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="number">7</div>
+                        <div class="label">Packages</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="number">5</div>
+                        <div class="label">Modules</div>
+                    </div>
+                </div>
+                
+                <h3>🎭 Actors (Người dùng)</h3>
+                <div class="stats">
+                    <div class="stat-card" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);">
+                        <div class="label">Khách hàng</div>
+                        <div class="number" style="font-size: 2em;">24</div>
+                        <div class="label">Use Cases</div>
+                    </div>
+                    <div class="stat-card" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
+                        <div class="label">Admin</div>
+                        <div class="number" style="font-size: 2em;">20</div>
+                        <div class="label">Use Cases</div>
+                    </div>
+                    <div class="stat-card" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                        <div class="label">Shipper</div>
+                        <div class="number" style="font-size: 2em;">6</div>
+                        <div class="label">Use Cases</div>
+                    </div>
+                    <div class="stat-card" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);">
+                        <div class="label">Hệ thống</div>
+                        <div class="number" style="font-size: 2em;">6</div>
+                        <div class="label">Use Cases</div>
+                    </div>
+                </div>
+                
+                <h3>📦 7 Packages chức năng</h3>
+                <div class="how-to">
+                    <ol>
+                        <li><strong>Quản lý Tài khoản</strong> - Đăng ký, đăng nhập, profile (6 UCs)</li>
+                        <li><strong>Quản lý Sản phẩm</strong> - CRUD sản phẩm, danh mục, đánh giá (11 UCs)</li>
+                        <li><strong>Giỏ hàng & Đặt hàng</strong> - Cart, checkout, thanh toán (10 UCs)</li>
+                        <li><strong>Quản lý Đơn hàng</strong> - Xem, hủy, cập nhật trạng thái (8 UCs)</li>
+                        <li><strong>Quản lý Giao hàng</strong> - Shipper, tracking, delivery (10 UCs)</li>
+                        <li><strong>Báo cáo & Thống kê</strong> - Dashboard, analytics, export (8 UCs)</li>
+                        <li><strong>Hệ thống Thông báo</strong> - Email automation (4 UCs)</li>
+                    </ol>
+                </div>
+                
+                <div style="text-align: center; margin-top: 30px;">
+                    <a href="#" class="btn" onclick="showTab('diagram'); return false;">Xem sơ đồ Use Case →</a>
+                </div>
+            </div>
+            
+            <!-- Tab 2: Sơ đồ -->
+            <div id="diagram" class="tab-content">
+                <h2>🎨 Sơ đồ Use Case Diagram</h2>
+                
+                <div class="info-box">
+                    <h3>⚠️ Lưu ý quan trọng</h3>
+                    <ul>
+                        <li>Sơ đồ được vẽ bằng <strong>PlantUML</strong> - định dạng UML chuẩn</li>
+                        <li>File source: <code>use-case-diagram.puml</code> (chi tiết) và <code>use-case-diagram-simple.puml</code> (đơn giản)</li>
+                        <li>Để xem sơ đồ, vui lòng sử dụng một trong các cách trong tab "Hướng dẫn xem"</li>
+                        <li>Trình duyệt <strong>KHÔNG thể hiển thị trực tiếp</strong> file .puml</li>
+                    </ul>
+                </div>
+                
+                <h3>🖼️ Cách xem nhanh nhất</h3>
+                <div class="how-to">
+                    <h4>Option 1: Online Viewer (Khuyến nghị)</h4>
+                    <ol>
+                        <li>Mở file <code>use-case-diagram.puml</code> trong editor</li>
+                        <li>Copy toàn bộ nội dung (Ctrl+A, Ctrl+C)</li>
+                        <li>Truy cập: <a href="http://www.plantuml.com/plantuml/uml/" target="_blank" style="color: #667eea; font-weight: bold;">http://www.plantuml.com/plantuml/uml/</a></li>
+                        <li>Paste nội dung vào và xem kết quả</li>
+                        <li>Download PNG/SVG/PDF nếu cần</li>
+                    </ol>
+                    
+                    <h4>Option 2: VS Code Extension</h4>
+                    <ol>
+                        <li>Cài extension: <strong>PlantUML</strong> (by jebbs)</li>
+                        <li>Mở file .puml</li>
+                        <li>Nhấn <code>Alt + D</code> để xem preview</li>
+                    </ol>
+                </div>
+                
+                <div style="text-align: center; margin-top: 30px;">
+                    <a href="http://www.plantuml.com/plantuml/uml/" target="_blank" class="btn">
+                        🌐 Mở PlantUML Online Viewer
+                    </a>
+                    <a href="https://plantuml-editor.kkeisuke.com/" target="_blank" class="btn">
+                        🖥️ PlantUML Editor (Alternative)
+                    </a>
+                </div>
+                
+                <div class="info-box" style="margin-top: 30px;">
+                    <h3>📐 Cấu trúc sơ đồ</h3>
+                    <ul>
+                        <li><strong>4 Actors:</strong> Khách hàng, Admin, Shipper, Hệ thống bên ngoài</li>
+                        <li><strong>46+ Use Cases:</strong> Được nhóm thành 7 packages</li>
+                        <li><strong>Relationships:</strong> Include, Extend, Association</li>
+                        <li><strong>Notes:</strong> Giải thích các điểm quan trọng</li>
+                        <li><strong>Styling:</strong> Màu sắc phân biệt từng actor</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Tab 3: Hướng dẫn -->
+            <div id="howto" class="tab-content">
+                <h2>📖 Hướng dẫn xem sơ đồ PlantUML</h2>
+                
+                <h3>Cách 1: Online Viewer (⭐ Nhanh nhất - Không cần cài đặt)</h3>
+                <div class="how-to">
+                    <ol>
+                        <li>Mở file <code>use-case-diagram.puml</code> bằng Notepad/VS Code</li>
+                        <li>Copy toàn bộ nội dung (Ctrl+A → Ctrl+C)</li>
+                        <li>Truy cập: <a href="http://www.plantuml.com/plantuml/uml/" target="_blank" style="color: #667eea;">http://www.plantuml.com/plantuml/uml/</a></li>
+                        <li>Paste vào ô text và nhấn "Submit"</li>
+                        <li>Xem sơ đồ và download nếu cần (PNG, SVG, PDF)</li>
+                    </ol>
+                    <a href="http://www.plantuml.com/plantuml/uml/" target="_blank" class="btn">Mở PlantUML Online</a>
+                </div>
+                
+                <h3>Cách 2: VS Code Extension (⭐ Cho lập trình viên)</h3>
+                <div class="how-to">
+                    <h4>Bước 1: Cài extension</h4>
+                    <ol>
+                        <li>Mở VS Code</li>
+                        <li>Vào Extensions (Ctrl+Shift+X)</li>
+                        <li>Tìm "PlantUML" by jebbs</li>
+                        <li>Click Install</li>
+                    </ol>
+                    
+                    <h4>Bước 2: Cài Java (Yêu cầu)</h4>
+                    <ol>
+                        <li>Download Java JRE/JDK: <a href="https://www.java.com/download/" target="_blank">https://www.java.com/download/</a></li>
+                        <li>Cài đặt Java</li>
+                        <li>Restart VS Code</li>
+                    </ol>
+                    
+                    <h4>Bước 3: Xem sơ đồ</h4>
+                    <ol>
+                        <li>Mở file .puml trong VS Code</li>
+                        <li>Nhấn <code>Alt + D</code> hoặc chuột phải → "Preview Current Diagram"</li>
+                        <li>Sơ đồ hiển thị bên cạnh</li>
+                    </ol>
+                </div>
+                
+                <h3>Cách 3: IntelliJ IDEA / PyCharm</h3>
+                <div class="how-to">
+                    <ol>
+                        <li>Vào Settings → Plugins</li>
+                        <li>Tìm "PlantUML Integration"</li>
+                        <li>Install plugin</li>
+                        <li>Mở file .puml → Sơ đồ tự động hiển thị</li>
+                    </ol>
+                </div>
+                
+                <h3>Cách 4: Command Line (Advanced)</h3>
+                <div class="code-block">
+# Cài PlantUML qua npm<br>
+npm install -g node-plantuml<br>
+<br>
+# Render thành PNG<br>
+puml generate docs/use-case-diagram.puml -o docs/<br>
+<br>
+# Hoặc dùng Java (download plantuml.jar trước)<br>
+java -jar plantuml.jar docs/use-case-diagram.puml
+                </div>
+                
+                <h3>Cách 5: Online Editors khác</h3>
+                <div class="how-to">
+                    <ul style="list-style: none; padding: 0;">
+                        <li>🌐 <a href="https://plantuml-editor.kkeisuke.com/" target="_blank">PlantUML Editor</a></li>
+                        <li>🌐 <a href="https://www.planttext.com/" target="_blank">PlantText</a></li>
+                        <li>🌐 <a href="https://liveuml.com/" target="_blank">LiveUML</a></li>
+                    </ul>
+                </div>
+                
+                <div class="info-box" style="margin-top: 30px;">
+                    <h3>💡 Mẹo</h3>
+                    <ul>
+                        <li>File <code>use-case-diagram-simple.puml</code> là phiên bản đơn giản hơn</li>
+                        <li>File <code>use-case-diagram.puml</code> là phiên bản đầy đủ chi tiết</li>
+                        <li>Có thể chỉnh sửa file .puml để thay đổi sơ đồ</li>
+                        <li>Export dạng SVG để có chất lượng tốt nhất khi zoom</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Tab 4: Chi tiết Use Cases -->
+            <div id="details" class="tab-content">
+                <h2>📝 Chi tiết Use Cases</h2>
+                
+                <div class="info-box">
+                    <h3>📄 Tài liệu đầy đủ</h3>
+                    <p style="margin: 15px 0;">File <strong>use-case-description.md</strong> chứa mô tả chi tiết đầy đủ cho tất cả 46+ use cases.</p>
+                    <p>Mỗi use case bao gồm:</p>
+                    <ul>
+                        <li>Actor thực hiện</li>
+                        <li>Mô tả chức năng</li>
+                        <li>Luồng chính (Main flow)</li>
+                        <li>Luồng ngoại lệ (Alternative flow)</li>
+                        <li>Điều kiện tiên quyết</li>
+                        <li>Kết quả mong đợi</li>
+                    </ul>
+                </div>
+                
+                <h3>🎯 Top 10 Use Cases quan trọng nhất</h3>
+                <div class="how-to">
+                    <ol>
+                        <li><strong>UC34 - Thanh toán (Checkout)</strong> ⭐⭐⭐⭐⭐
+                            <p style="margin-left: 20px; color: #666;">Quy trình hoàn tất đơn hàng với thanh toán VNPay/COD</p>
+                        </li>
+                        <li><strong>UC12 - Xem chi tiết sản phẩm</strong> ⭐⭐⭐⭐⭐
+                            <p style="margin-left: 20px; color: #666;">Hiển thị đầy đủ thông tin sản phẩm, gallery, đánh giá</p>
+                        </li>
+                        <li><strong>UC54 - Quản lý đơn hàng (Admin)</strong> ⭐⭐⭐⭐⭐
+                            <p style="margin-left: 20px; color: #666;">Admin quản lý, cập nhật trạng thái tất cả đơn hàng</p>
+                        </li>
+                        <li><strong>UC70 - Phân công shipper</strong> ⭐⭐⭐⭐
+                            <p style="margin-left: 20px; color: #666;">Admin gán đơn cho shipper và gửi email thông báo</p>
+                        </li>
+                        <li><strong>UC73 - Cập nhật giao hàng</strong> ⭐⭐⭐⭐
+                            <p style="margin-left: 20px; color: #666;">Shipper cập nhật tiến trình giao hàng real-time</p>
+                        </li>
+                        <li><strong>UC90 - Dashboard tổng quan</strong> ⭐⭐⭐⭐
+                            <p style="margin-left: 20px; color: #666;">Hiển thị biểu đồ, thống kê, báo cáo đầy đủ</p>
+                        </li>
+                        <li><strong>UC37 - Thanh toán VNPay</strong> ⭐⭐⭐⭐
+                            <p style="margin-left: 20px; color: #666;">Tích hợp cổng thanh toán VNPay</p>
+                        </li>
+                        <li><strong>UC18 - Quản lý sản phẩm</strong> ⭐⭐⭐
+                            <p style="margin-left: 20px; color: #666;">CRUD sản phẩm, upload ảnh, quản lý tồn kho</p>
+                        </li>
+                        <li><strong>UC15 - Đánh giá sản phẩm</strong> ⭐⭐⭐
+                            <p style="margin-left: 20px; color: #666;">Khách hàng viết review và đánh giá sao</p>
+                        </li>
+                        <li><strong>UC91 - Báo cáo doanh thu</strong> ⭐⭐⭐
+                            <p style="margin-left: 20px; color: #666;">Phân tích doanh thu theo thời gian, biểu đồ</p>
+                        </li>
+                    </ol>
+                </div>
+                
+                <h3>📦 Use Cases theo Package</h3>
+                
+                <div class="stat-card" style="margin: 15px 0;">
+                    <h4 style="margin-bottom: 15px;">1. Quản lý Tài khoản (6 UCs)</h4>
+                    <p style="text-align: left; font-size: 0.9em;">
+                        UC1-UC6: Đăng ký, Đăng nhập, Đăng xuất, Xem profile, Cập nhật thông tin, Quản lý địa chỉ
+                    </p>
+                </div>
+                
+                <div class="stat-card" style="margin: 15px 0; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);">
+                    <h4 style="margin-bottom: 15px;">2. Quản lý Sản phẩm (11 UCs)</h4>
+                    <p style="text-align: left; font-size: 0.9em;">
+                        UC10-UC20: Danh sách sản phẩm, Tìm kiếm, Chi tiết, Lọc danh mục, Wishlist, Đánh giá, Newsletter, CRUD sản phẩm (Admin)
+                    </p>
+                </div>
+                
+                <div class="stat-card" style="margin: 15px 0; background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                    <h4 style="margin-bottom: 15px;">3. Giỏ hàng & Đặt hàng (10 UCs)</h4>
+                    <p style="text-align: left; font-size: 0.9em;">
+                        UC30-UC39: Cart operations, Checkout, Mã giảm giá, Chọn payment, VNPay, COD, Xác nhận đơn
+                    </p>
+                </div>
+                
+                <div class="stat-card" style="margin: 15px 0; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
+                    <h4 style="margin-bottom: 15px;">4. Quản lý Đơn hàng (8 UCs)</h4>
+                    <p style="text-align: left; font-size: 0.9em;">
+                        UC50-UC57: Lịch sử đơn, Chi tiết, Tracking, Hủy đơn, Quản lý đơn (Admin), Cập nhật trạng thái, Báo cáo, Mã giảm giá
+                    </p>
+                </div>
+                
+                <div class="stat-card" style="margin: 15px 0; background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);">
+                    <h4 style="margin-bottom: 15px;">5. Quản lý Giao hàng (10 UCs)</h4>
+                    <p style="text-align: left; font-size: 0.9em;">
+                        UC70-UC79: Phân công shipper, Xem đơn giao, Lấy hàng, Cập nhật giao hàng, Upload ảnh, Báo thất bại, Real-time tracking, Quản lý shipper, Thống kê, Khu vực
+                    </p>
+                </div>
+                
+                <div class="stat-card" style="margin: 15px 0; background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);">
+                    <h4 style="margin-bottom: 15px;">6. Báo cáo & Thống kê (8 UCs)</h4>
+                    <p style="text-align: left; font-size: 0.9em;">
+                        UC90-UC97: Dashboard, Báo cáo doanh thu, Thống kê sản phẩm, Thống kê khách hàng, Biểu đồ, Export CSV, Quản lý users, Newsletter
+                    </p>
+                </div>
+                
+                <div class="stat-card" style="margin: 15px 0; background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);">
+                    <h4 style="margin-bottom: 15px;">7. Hệ thống Thông báo (4 UCs)</h4>
+                    <p style="text-align: left; font-size: 0.9em;">
+                        UC100-UC103: Email xác nhận đơn, Email cập nhật trạng thái, Email phân công shipper, Email Newsletter
+                    </p>
+                </div>
+                
+                <div style="text-align: center; margin-top: 30px;">
+                    <a href="use-case-description.md" class="btn">📄 Đọc tài liệu chi tiết (Markdown)</a>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p><strong>FreshBerry Fruit Shop</strong> - Use Case Diagram Documentation</p>
+            <p style="margin-top: 10px; opacity: 0.8;">Version 1.0 | Last updated: 2025-10-26</p>
+        </footer>
+    </div>
+    
+    <script>
+        function showTab(tabName) {
+            // Hide all tabs
+            const tabs = document.querySelectorAll('.tab-content');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            
+            // Remove active class from all tab buttons
+            const tabButtons = document.querySelectorAll('.tab');
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+            
+            // Add active class to clicked button
+            event.target.classList.add('active');
+        }
+    </script>
+</body>
+</html>
+
+

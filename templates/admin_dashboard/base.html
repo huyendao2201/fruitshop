@@ -174,13 +174,14 @@
                 </div>
             </li>
 
-            <!-- Nav Item - Reviews -->
-            <li class="nav-item">
+            <!-- Nav Item - Reviews
+             <li class="nav-item">
                 <a class="nav-link" href="{% url 'reports:review_list' %}">
                     <i class="fas fa-fw fa-star"></i>
                     <span>Đánh Giá Sản Phẩm</span>
                 </a>
-            </li>
+            </li> -->
+            
 
             <!-- Nav Item - Shop Reviews -->
             <li class="nav-item {% if request.resolver_match.url_name == 'shop_review_list' or request.resolver_match.url_name == 'shop_review_detail' %}active{% endif %}">

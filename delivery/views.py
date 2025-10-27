@@ -292,8 +292,8 @@ def delivery_mark_delivered(request, delivery_id):
             
             if notes:
                 DeliveryTracking.objects.create(
-                    delivery=delivery,
                     status='delivered',
+                    delivery=delivery,
                     message=notes,
                     location_name=delivery.delivery_address,
                     created_by=request.user
@@ -342,7 +342,7 @@ def customer_rate_delivery(request, delivery_id):
     
     if delivery.status != 'delivered':
         messages.error(request, 'Chỉ có thể đánh giá sau khi đơn hàng được giao thành công')
-        return redirect('orders:order_detail', pk=delivery.order.id)
+        return redirect('orders:order_detail', order_number=delivery.order.order_number)
     
     if request.method == 'POST':
         form = CustomerRatingForm(request.POST, instance=delivery)
@@ -361,7 +361,7 @@ def customer_rate_delivery(request, delivery_id):
                     person.save()
             
             messages.success(request, 'Cảm ơn bạn đã đánh giá!')
-            return redirect('orders:order_detail', pk=delivery.order.id)
+            return redirect('orders:order_detail', order_number=delivery.order.order_number)
     else:
         form = CustomerRatingForm(instance=delivery)
     

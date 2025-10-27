@@ -246,12 +246,15 @@
                 </a>
             </li>
             {% endif %}
+            <!-- HIDDEN: Review Feature -->
+            {% comment %}
             <li class="nav-item">
                 <a class="nav-link" data-bs-toggle="tab" href="#reviews">
                     <i class="bi bi-star"></i>
                     Đánh Giá ({{ product.review_count }})
                 </a>
             </li>
+            {% endcomment %}
         </ul>
         
         <div class="tab-content">
@@ -273,7 +276,8 @@
             </div>
             {% endif %}
             
-            <!-- Reviews Tab -->
+            <!-- HIDDEN: Reviews Tab - Product Review Feature -->
+            {% comment %}
             <div class="tab-pane fade" id="reviews">
                 <div class="tab-content-inner">
                     <div class="reviews-wrapper">
@@ -383,6 +387,7 @@
                     </div>
                 </div>
             </div>
+            {% endcomment %}
         </div>
     </div>
 </section>
@@ -401,8 +406,8 @@
             <div class="product-card">
                 <div class="product-image-wrapper">
                     <a href="{% url 'products:product_detail' related_product.slug %}">
-                        {% if related_product.image %}
-                            <img src="{{ related_product.image.url }}" class="product-image" alt="{{ related_product.name }}">
+                        {% if related_product.get_primary_image %}
+                            <img src="{{ related_product.get_primary_image.url }}" class="product-image" alt="{{ related_product.name }}">
                         {% else %}
                             <div class="product-image-placeholder">
                                 <i class="bi bi-image"></i>

@@ -1,0 +1,230 @@
+@startuml FreshBerry Use Case Diagram
+
+' Layout - Top to Bottom (Vertical)
+top to bottom direction
+
+' Styling
+skinparam actorStyle awesome
+skinparam packageStyle rectangle
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 11
+
+' Title
+title FreshBerry Fruit Shop - Use Case Diagram (Vertical Layout)
+
+' Actors
+actor "Khách hàng\n(Customer)" as Customer
+actor "Quản trị viên\n(Admin)" as Admin  
+actor "Nhân viên giao hàng\n(Shipper)" as Shipper
+actor "Hệ thống VNPay" as VNPay
+actor "Hệ thống Email" as Email
+
+' System boundary
+rectangle "FreshBerry Fruit Shop System" {
+    
+    ' ========== PACKAGE: QUẢN LÝ TÀI KHOẢN ==========
+    package "Quản lý Tài khoản" {
+        usecase (Đăng ký tài khoản) as UC1
+        usecase (Đăng nhập) as UC2
+        usecase (Đăng xuất) as UC3
+        usecase (Xem thông tin cá nhân) as UC4
+        usecase (Cập nhật thông tin) as UC5
+        usecase (Quản lý địa chỉ) as UC6
+    }
+    
+    ' ========== PACKAGE: SẢN PHẨM ==========
+    package "Quản lý Sản phẩm" {
+        usecase (Xem danh sách sản phẩm) as UC10
+        usecase (Tìm kiếm sản phẩm) as UC11
+        usecase (Xem chi tiết sản phẩm) as UC12
+        usecase (Lọc theo danh mục) as UC13
+        usecase (Thêm vào yêu thích) as UC14
+        usecase (Đánh giá sản phẩm) as UC15
+        usecase (Đánh giá cửa hàng) as UC16
+        usecase (Đăng ký nhận tin) as UC17
+        usecase (Thêm/Sửa/Xóa sản phẩm) as UC18
+        usecase (Quản lý danh mục) as UC19
+        usecase (Quản lý đánh giá) as UC20
+    }
+    
+    ' ========== PACKAGE: GIỎ HÀNG & ĐẶT HÀNG ==========
+    package "Giỏ hàng & Đặt hàng" {
+        usecase (Thêm vào giỏ hàng) as UC30
+        usecase (Xem giỏ hàng) as UC31
+        usecase (Cập nhật giỏ hàng) as UC32
+        usecase (Xóa sản phẩm khỏi giỏ) as UC33
+        usecase (Thanh toán (Checkout)) as UC34
+        usecase (Áp dụng mã giảm giá) as UC35
+        usecase (Chọn phương thức thanh toán) as UC36
+        usecase (Thanh toán VNPay) as UC37
+        usecase (Thanh toán COD) as UC38
+        usecase (Xác nhận đơn hàng) as UC39
+    }
+    
+    ' ========== PACKAGE: QUẢN LÝ ĐỠN HÀNG ==========
+    package "Quản lý Đơn hàng" {
+        usecase (Xem lịch sử đơn hàng) as UC50
+        usecase (Xem chi tiết đơn hàng) as UC51
+        usecase (Theo dõi trạng thái đơn) as UC52
+        usecase (Hủy đơn hàng) as UC53
+        usecase (Quản lý đơn hàng (Admin)) as UC54
+        usecase (Cập nhật trạng thái đơn) as UC55
+        usecase (Xem báo cáo đơn hàng) as UC56
+        usecase (Quản lý mã giảm giá) as UC57
+    }
+    
+    ' ========== PACKAGE: GIAO HÀNG ==========
+    package "Quản lý Giao hàng" {
+        usecase (Phân công shipper) as UC70
+        usecase (Xem đơn được phân công) as UC71
+        usecase (Xác nhận lấy hàng) as UC72
+        usecase (Cập nhật trạng thái giao hàng) as UC73
+        usecase (Upload ảnh giao hàng) as UC74
+        usecase (Báo giao thất bại) as UC75
+        usecase (Theo dõi giao hàng (Real-time)) as UC76
+        usecase (Quản lý shipper) as UC77
+        usecase (Xem thống kê shipper) as UC78
+        usecase (Quản lý khu vực giao hàng) as UC79
+    }
+    
+    ' ========== PACKAGE: BÁO CÁO & THỐNG KÊ ==========
+    package "Báo cáo & Thống kê" {
+        usecase (Xem dashboard tổng quan) as UC90
+        usecase (Xem báo cáo doanh thu) as UC91
+        usecase (Xem thống kê sản phẩm) as UC92
+        usecase (Xem thống kê khách hàng) as UC93
+        usecase (Xem biểu đồ phân tích) as UC94
+        usecase (Export báo cáo CSV) as UC95
+        usecase (Quản lý user (All roles)) as UC96
+        usecase (Quản lý Newsletter) as UC97
+    }
+    
+    ' ========== PACKAGE: THÔNG BÁO ==========
+    package "Hệ thống Thông báo" {
+        usecase (Gửi email xác nhận đơn) as UC100
+        usecase (Gửi email cập nhật trạng thái) as UC101
+        usecase (Gửi email phân công shipper) as UC102
+        usecase (Gửi email Newsletter) as UC103
+    }
+}
+
+' ========== CUSTOMER RELATIONSHIPS ==========
+Customer --> UC1
+Customer --> UC2
+Customer --> UC3
+Customer --> UC4
+Customer --> UC5
+Customer --> UC6
+Customer --> UC10
+Customer --> UC11
+Customer --> UC12
+Customer --> UC13
+Customer --> UC14
+Customer --> UC15
+Customer --> UC16
+Customer --> UC17
+Customer --> UC30
+Customer --> UC31
+Customer --> UC32
+Customer --> UC33
+Customer --> UC34
+Customer --> UC50
+Customer --> UC51
+Customer --> UC52
+Customer --> UC53
+Customer --> UC76
+
+' ========== ADMIN RELATIONSHIPS ==========
+Admin --> UC2
+Admin --> UC3
+Admin --> UC18
+Admin --> UC19
+Admin --> UC20
+Admin --> UC54
+Admin --> UC55
+Admin --> UC56
+Admin --> UC57
+Admin --> UC70
+Admin --> UC77
+Admin --> UC78
+Admin --> UC79
+Admin --> UC90
+Admin --> UC91
+Admin --> UC92
+Admin --> UC93
+Admin --> UC94
+Admin --> UC95
+Admin --> UC96
+Admin --> UC97
+
+' ========== SHIPPER RELATIONSHIPS ==========
+Shipper --> UC2
+Shipper --> UC3
+Shipper --> UC71
+Shipper --> UC72
+Shipper --> UC73
+Shipper --> UC74
+Shipper --> UC75
+
+' ========== EXTERNAL SYSTEMS ==========
+UC34 --> VNPay : <<uses>>
+UC37 --> VNPay : <<uses>>
+UC100 --> Email : <<uses>>
+UC101 --> Email : <<uses>>
+UC102 --> Email : <<uses>>
+UC103 --> Email : <<uses>>
+
+' ========== USE CASE RELATIONSHIPS ==========
+UC34 ..> UC35 : <<include>>
+UC34 ..> UC36 : <<include>>
+UC34 ..> UC39 : <<include>>
+
+UC36 ..> UC37 : <<extend>>
+UC36 ..> UC38 : <<extend>>
+
+UC37 ..> UC100 : <<include>>
+UC39 ..> UC100 : <<include>>
+
+UC55 ..> UC101 : <<include>>
+
+UC70 ..> UC102 : <<include>>
+
+UC15 ..> UC12 : <<extend>>
+UC16 ..> UC50 : <<extend>>
+
+UC30 ..> UC10 : <<extend>>
+UC30 ..> UC12 : <<extend>>
+
+UC53 ..> UC51 : <<extend>>
+
+UC73 ..> UC76 : <<include>>
+
+' ========== NOTES ==========
+note right of Customer
+  Người dùng không cần
+  đăng nhập để xem sản phẩm
+  và thêm vào giỏ hàng
+end note
+
+note right of VNPay
+  Tích hợp VNPay Sandbox
+  cho thanh toán trực tuyến
+end note
+
+note right of Shipper
+  Nhận email thông báo
+  khi được phân công đơn
+end note
+
+note bottom of UC90
+  Dashboard hiển thị:
+  - Doanh thu
+  - Đơn hàng
+  - Khách hàng
+  - Biểu đồ
+  - Top sản phẩm
+end note
+
+@enduml
+

@@ -172,24 +172,27 @@
 
 /* Price */
 .product-price {
-    min-width: 150px;
+    min-width: 180px;
     text-align: center;
-    white-space: nowrap;
+    padding-left: 10px;
+    padding-right: 10px;
 }
 
 .price-old {
-    display: inline;
+    display: block;
     text-decoration: line-through;
     color: #999;
     font-size: 0.9rem;
-    margin-right: 8px;
+    margin-bottom: 5px;
+    white-space: nowrap;
 }
 
 .price-current {
-    display: inline;
+    display: block;
     font-size: 1.25rem;
     font-weight: 700;
     color: #10b981;
+    white-space: nowrap;
 }
 
 /* Quantity */
@@ -736,8 +739,8 @@
                             <tr class="cart-item">
                                 <td class="product-info">
                                     <div class="product-thumbnail">
-                                        {% if item.product.image %}
-                                            <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}">
+                                        {% if item.product.get_primary_image %}
+                                            <img src="{{ item.product.get_primary_image.url }}" alt="{{ item.product.name }}">
                                         {% else %}
                                             <div class="placeholder-image">
                                                 <i class="bi bi-image"></i>
@@ -768,22 +771,22 @@
                                         <span class="price-current">{{ item.product.price|floatformat:0 }}₫</span>
                                     {% endif %}
                                 </td>
-                                <td class="product-quantity">
-                                    <form method="post" action="{% url 'orders:update_cart' item.product.id %}" class="quantity-form">
-                                        {% csrf_token %}
-                                        <div class="quantity-controls">
-                                            <button type="button" class="quantity-btn" onclick="updateQuantity(this, -1)">
-                                                <i class="bi bi-dash"></i>
-                                            </button>
-                                            <input type="number" name="quantity" class="quantity-input" 
-                                                   value="{{ item.quantity }}" min="1" max="{{ item.product.stock }}"
-                                                   onchange="this.form.submit()">
-                                            <button type="button" class="quantity-btn" onclick="updateQuantity(this, 1)">
-                                                <i class="bi bi-plus"></i>
-                                            </button>
-                                        </div>
-                                    </form>
-                                </td>
+                                    <td class="product-quantity">
+                                        <form method="post" action="{% url 'orders:update_cart' item.product.id %}" class="quantity-form">
+                                            {% csrf_token %}
+                                            <div class="quantity-controls">
+                                                <button type="button" class="quantity-btn" onclick="updateQuantity(this, -1)">
+                                                    <i class="bi bi-dash"></i>
+                                                </button>
+                                                <input type="number" name="quantity" class="quantity-input" 
+                                                    value="{{ item.quantity }}" min="1" max="{{ item.product.stock }}"
+                                                    onchange="this.form.submit()">
+                                                <button type="button" class="quantity-btn" onclick="updateQuantity(this, 1)">
+                                                    <i class="bi bi-plus"></i>
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </td>
                                 <td class="product-subtotal">
                                     <span class="subtotal-price">{{ item.total|floatformat:0 }}₫</span>
                                 </td>
@@ -887,15 +890,18 @@
                         <div class="trust-badges">
                             <div class="trust-badge">
                                 <i class="bi bi-shield-check"></i>
-                                <span>Secure Payment</span>
+                                <span>Thanh toán an toàn
+                                </span>
                             </div>
                             <div class="trust-badge">
                                 <i class="bi bi-truck"></i>
-                                <span>Free Delivery</span>
+                                <span>Giao hàng miễn phí
+                                </span>
                             </div>
                             <div class="trust-badge">
                                 <i class="bi bi-arrow-clockwise"></i>
-                                <span>Easy Returns</span>
+                                <span>Trả lại dễ dàng
+                                </span>
                             </div>
                         </div>
                     </div>
@@ -928,8 +934,10 @@
 <section class="suggested-products-section">
     <div class="container">
         <div class="section-header">
-            <h2 class="section-title">You May Also Like</h2>
-            <p class="section-subtitle">Complete your order with these products</p>
+            <h2 class="section-title">Có Thể Bạn Cũng Thích
+            </h2>
+            <p class="section-subtitle">Hoàn tất đơn đặt hàng của bạn với các sản phẩm này
+            </p>
         </div>
         
         <!-- Add product suggestions here if available -->
